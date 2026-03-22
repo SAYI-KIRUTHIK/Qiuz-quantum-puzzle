@@ -1,20 +1,20 @@
-# 🧩 Quiz: A Quantum Puzzle Game
+# 🧩 Qiuz: A Quantum Puzzle Game
 
-An interactive, gamified educational tool designed to introduce beginners and university students to the fundamentals of quantum mechanics and quantum circuit design. 
+An interactive, gamified educational tool designed to introduce beginners and university students to the fundamentals of quantum gates. A quantum mini game 
 
 **Play it live here:** [https://qiuz-quantum-puzzle-sa-k-hi-aminigame.streamlit.app/]
 
-## 📖 Pedagogical Goal
-Bridging the gap between abstract linear algebra and practical quantum computing can be difficult. This application gamifies the learning process by translating complex quantum state manipulation into an intuitive puzzle format. 
+## 📖 Project Goal
+Bridging the gap between abstract linear algebra and practical quantum computing can be difficult. This application gamifies the learning process by translating complex quantum state manipulation into an intuitive puzzle format by the means of visual interactions. 
 
-Instead of passively reading about quantum logic, users must actively construct circuits to manipulate state vectors, leading to independent discovery of foundational concepts like superposition and quantum entanglement.
+Instead of passively reading about quantum logic, users must actively construct circuits to manipulate state vectors, leading to independent discovery of foundational concepts like superposition, Gates revesrsiblity, etc.
 
 ## ✨ Features
-* **Interactive Circuit Builder:** Construct real quantum circuits using X (NOT), H (Hadamard), and CX (CNOT) gates.
+* **Interactive Circuit Builder:** Construct real quantum circuits using X (NOT), H (Hadamard), and CX (CNOT) gates (basic gates).
 * **Mathematical Validation:** The app runs accurate quantum simulations using IBM's Qiskit framework to generate and validate the resulting state vectors against target states.
 * **Dynamic Visualization:** Circuits are rendered in real-time using Matplotlib, cleanly linking the visual gate layout to the mathematical output.
-* **Progressive Difficulty:** Levels scale from simple 1-qubit bit-flips to a 2-qubit "Boss Level" where users must perfectly entangle a Bell State ($\frac{1}{\sqrt{2}}(|00\rangle + |11\rangle)$).
-* **Gamified Economy:** Solving puzzles rewards users with "Schrödinger Coins" (🐈‍⬛), which can be spent in the Knowledge Shop to unlock accessible explanations of real-world quantum phenomena like Quantum Teleportation.
+* **Progressive Difficulty:** Levels scale from simple 1-qubit bit-flips to a 2-qubit "Boss Level" where users must perfectly entangle a Bell State 1\sqrt(|00 > + |11 >, etc).
+* **Gamified Economy:** Solving puzzles rewards users with "Catty-Coins" (🐈‍⬛), which can be spent in the Knowledge Shop to unlock accessible explanations of real-world quantum phenomena like Quantum Teleportation and many more coming in future updates.
 
 ## 🛠️ Technology Stack
 * **Frontend/UI:** [Streamlit](https://streamlit.io/)
@@ -24,7 +24,7 @@ Instead of passively reading about quantum logic, users must actively construct 
 ## 💻 How to Run Locally
 If you want to run this project on your own machine:
 
-1. Clone this repository.
-2. Install the required dependencies: (in terminal)
+1. Clone this repository or download requirements and qiuz.py files.
+2. Install the required dependencies: ( type the below code in the terminal)
 
    pip install -r requirements.txt
