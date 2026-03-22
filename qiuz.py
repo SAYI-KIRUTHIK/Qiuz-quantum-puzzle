@@ -63,7 +63,7 @@ levels = {
         "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
         "reward": 15
     },
-    "Boss Level: Entanglement": {
+    "Level 4: Entanglement": {
         "qubits": 2, 
         "target": Statevector([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]), 
         "goal_text": "I want, $\\frac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)$ or $\\frac{1}{\\sqrt{2}}[1, 0, 0, 1]$ (The Bell State)",
@@ -86,7 +86,7 @@ with tab_play:
     level_reward = level_data["reward"]
 
     # Dynamic Circuit Management
-    if "current_level" not in st.session_state or st.session_state.current_level != level_name or st.button("Reset Circuit 🔄"):
+    if "current_level" not in st.session_state or st.session_state.current_level != level_name or st.sidebar.button("Reset Circuit 🔄"):
         st.session_state.current_level = level_name
         st.session_state.qc = QuantumCircuit(num_qubits)
         st.session_state.checked = False 
@@ -140,18 +140,27 @@ with tab_play:
 
     # Evaluation
     current_state = Statevector(qc)
-    
-    if st.button("Check Circuit ✅", type="primary"):
-        st.session_state.checked = True
+
+
 
     st.write("### Your Current Circuit:")
     with st.container():
         fig = qc.draw(output='mpl', initial_state=True)
         st.pyplot(fig, use_container_width=False)
 
+
+    if st.button("Check Circuit ✅", type="primary"):
+        st.session_state.checked = True
+
+    
+    st.write("### 🔍 Results")
+    st.write("**Your Resulting State Vector:**")
+    st.code(np.round(current_state.data, 3))
+
+
     if st.session_state.checked:
         if current_state.equiv(target_state):
-            st.success("🎉 Puzzle Solved! Your state perfectly matches the target!")
+            st.success("🎉 Thanks, I got my state! and you got your catty-coin!")
             
             # Reward Logic: Only give coins if it's their first time beating it
             if level_name not in st.session_state.cleared_levels:
@@ -162,9 +171,9 @@ with tab_play:
             
             st.session_state.checked = False 
         else:
-            st.error("❌ Not quite! Compare your Resulting Vector in the image above to the Target.")
+            st.error("❌ This is not my target state. Can you try again?")
+    st.warning("⚠️ Remember, measuring a quantum state collapses it!")
 
-st.warning("⚠️ Remember, measuring a quantum state collapses it!")
 
 # ==========================================
 #               TAB 2: THE SHOP
