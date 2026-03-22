@@ -11,6 +11,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # --- 1. SETUP, MEMORY & SIDEBAR ---
 st.set_page_config(page_title="Quantum_circuit_Puzzle", page_icon="🧩",layout="wide")
 
+history_idx = 0
 # Initialize our Game Economy Memory
 if "coins" not in st.session_state:
     st.session_state.coins = 0
@@ -20,18 +21,36 @@ if "unlocked_rewards" not in st.session_state:
     st.session_state.unlocked_rewards = set() # Keeps track of bought items
 if "checked" not in st.session_state:
     st.session_state.checked = False
+if "history" not in st.session_state:
+    st.session_state.history = []
+if "history_idx" not in st.session_state:
+    st.session_state.history_idx = 0
+
 
 st.title("Qiuz: A Quantum Puzzle 🧩")
 st.divider()
+
+# Put all your game/challenge logic inside this scrollable container
+#with st.container(height=600, border=False):
 
 
 # Sidebar
 st.sidebar.title("Game Status")
 st.sidebar.metric(label="Catty-Coins", value=f"{st.session_state.coins} 🐈‍⬛")
+
+TOTAL_CHALLENGES = 11 
+cleared_count = len(st.session_state.cleared_levels)
+
+# Calculate percentage (and ensure it never breaks 100% if you add secret levels!)
+progress_pct = min(cleared_count / TOTAL_CHALLENGES, 1.0)
+st.sidebar.progress(
+    progress_pct, 
+    text=f"🏆 Campaign Progress: {cleared_count} / {TOTAL_CHALLENGES}"
+)
 st.sidebar.divider()
     
 st.sidebar.subheader("Navigation")
-current_page = st.sidebar.radio("", ["🎮 Play Puzzle", "🏪 Quantum Shop", "📖 How to Play","🎲 symbols sheets","🌀 Readme-Gates"])
+current_page = st.sidebar.radio("", ["📖 Interactive Tutorials","🎮 Play Challenge", "🏪 Quantum Shop", "📖 How to Play","🎲 symbols sheets","🌀 Readme-Gates"])
 
 
 
@@ -53,59 +72,72 @@ with st.sidebar.expander("💡 Need a Hint?"):
         st.caption("Flips the target IF the control is $|1\\rangle$")
         st.caption("$|00\\rangle$ to $|00\\rangle$, $|01\\rangle$ to $|01\\rangle$, $|10\\rangle$ to $|11\\rangle$, $|11\\rangle$ to $|10\\rangle$")
 
-# --- 2. DEFINE LEVELS (With Rewards Included!) ---
-levels = {
-    "Level 1: The Bit Flip (X)": {
-        "qubits": 1, 
-        "target": Statevector([0.+0.j, 1.+0.j]), 
-        "goal_text": "I want, $|1\\rangle$ or [0.+0.j, 1.+0.j]",
-        "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
-        "reward": 10
-    },
-    "Level 2: The Cartwheel (Y)": {
-        "qubits": 1, 
-        "target": Statevector([0.+0.j, 0.+1.j]), 
-        "reward": 15,
-        "goal_text": "I want, $i|1\\rangle$ or [0.+0.j, 0.+1.j]",
-        "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]"
-        },
-    "Level 3: The Superposition (H)": {
-        "qubits": 1, 
-        "target": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]), 
-        "goal_text": "I want, $|+\\rangle$ or $\\frac{1}{\\sqrt{2}}([1, 1/np.sqrt(2)]) (Equal superposition)",
-        "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
-        "reward": 10
-    },
-    "Level 4: The Phase Shift (Z)": {
-        "qubits": 1, 
-        "target": Statevector([1/np.sqrt(2), -1/np.sqrt(2)]), 
-        "goal_text": "I want, $|-\\rangle$ or $\\frac{1}{\\sqrt{2}}([1, -1/np.sqrt(2)]) (Superposition with a negative phase)",
-        "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
-        "reward": 15
-    },    
-    "Level 5: The Entanglement (CNOT)": {
-        "qubits": 2, 
-        "target": Statevector([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]), 
-        "goal_text": "I want, $\\frac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)$ or $\\frac{1}{\\sqrt{2}}[1, 0, 0, 1]$ (The Bell State)",
-        "initial_state": "Qubit(s) with me, $|00\\rangle$ or [1, 0, 0, 0]",
-        "reward": 25
-    },
-    "Tutorial Boss: The Toffoli (CCNOT)": {
-        "qubits": 3, 
-        "target": Statevector([0, 0, 0, 0, 0, 0, 0, 1]),
-        "goal_text": "I want, $|111\\rangle$ or [0, 0, 0, 0, 0, 0, 0, 1] (The Toffoli State)",
-        "initial_state": "Qubit(s) with me, $|000\\rangle$ or [1, 0, 0, 0, 0, 0, 0, 0]", 
-        "reward": 50}     # Target is |111>
-}
 
-# --- CAMPAIGN PROGRESSION LOGIC ---
-# This checks what the user has beaten and only reveals the next level
-available_levels = ["Level 1: The Bit Flip (X)"]
-if "Level 1: The Bit Flip (X)" in st.session_state.cleared_levels: available_levels.append("Level 2: The Cartwheel (Y)")
-if "Level 2: The Cartwheel (Y)" in st.session_state.cleared_levels: available_levels.append("Level 3: The Superposition (H)")
-if "Level 3: The Superposition (H)" in st.session_state.cleared_levels: available_levels.append("Level 4: The Phase Shift (Z)")
-if "Level 4: The Phase Shift (Z)" in st.session_state.cleared_levels: available_levels.append("Level 5: The Entanglement (CNOT)")
-if "Level 5: The Entanglement (CNOT)" in st.session_state.cleared_levels: available_levels.append("Tutorial Boss: The Toffoli (CCNOT)")
+with st.sidebar.expander("About"):
+    st.write("### ⚙️ System Environment")
+    st.write("- **Frontend UI:** Streamlit")
+    st.write("- **Quantum Logic:** IBM Qiskit")
+    st.write("- **Visual Rendering:** Matplotlib, NumPy, pylatexenc")
+    st.divider()
+    st.write("**Developed by:** SAKHI")
+    st.write("**Contact:** sayikiruthikedu")
+    st.write("**GitHub:** https://github.com/SAYI-KIRUTHIK/Qiuz-quantum-puzzle")
+
+
+# --- 2. DEFINE LEVELS (With Rewards Included!) ---
+if current_page == "📖 Interactive Tutorials":
+    levels = {
+        "Level 1: The Bit Flip (X)": {
+            "qubits": 1, 
+            "target": Statevector([0.+0.j, 1.+0.j]), 
+            "goal_text": "I want, $|1\\rangle$ or [0.+0.j, 1.+0.j]",
+            "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
+            "reward": 10
+        },
+        "Level 2: The Cartwheel (Y)": {
+            "qubits": 1, 
+            "target": Statevector([0.+0.j, 0.+1.j]), 
+            "reward": 15,
+            "goal_text": "I want, $i|1\\rangle$ or [0.+0.j, 0.+1.j]",
+            "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]"
+            },
+        "Level 3: The Superposition (H)": {
+            "qubits": 1, 
+            "target": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]), 
+            "goal_text": "I want, $|+\\rangle$ or $\\frac{1}{\\sqrt{2}}[1, 1]$ (Equal superposition)",
+            "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
+            "reward": 10
+        },
+        "Level 4: The Phase Shift (Z)": {
+            "qubits": 1, 
+            "target": Statevector([1/np.sqrt(2), -1/np.sqrt(2)]), 
+            "goal_text": "I want, $|-\\rangle$ or $\\frac{1}{\\sqrt{2}}[1, -1]$ (Superposition with a negative phase)",
+            "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
+            "reward": 15
+        },    
+        "Level 5: The Entanglement (CNOT)": {
+            "qubits": 2, 
+            "target": Statevector([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]), 
+            "goal_text": "I want, $\\frac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)$ or $\\frac{1}{\\sqrt{2}}$[1, 0, 0, 1] (The Bell State)",
+            "initial_state": "Qubit(s) with me, $|00\\rangle$ or [1, 0, 0, 0]",
+            "reward": 25
+        },
+        "Tutorial Boss: The Toffoli (CCNOT)": {
+            "qubits": 3, 
+            "target": Statevector([0, 0, 0, 0, 0, 0, 0, 1]),
+            "goal_text": "I want, $|111\\rangle$ or [0, 0, 0, 0, 0, 0, 0, 1] (The Toffoli State)",
+            "initial_state": "Qubit(s) with me, $|000\\rangle$ or [1, 0, 0, 0, 0, 0, 0, 0]", 
+            "reward": 50}     # Target is |111>
+    }
+
+    # --- CAMPAIGN PROGRESSION LOGIC ---
+    # This checks what the user has beaten and only reveals the next level
+    available_levels = ["Level 1: The Bit Flip (X)"]
+    if "Level 1: The Bit Flip (X)" in st.session_state.cleared_levels: available_levels.append("Level 2: The Cartwheel (Y)")
+    if "Level 2: The Cartwheel (Y)" in st.session_state.cleared_levels: available_levels.append("Level 3: The Superposition (H)")
+    if "Level 3: The Superposition (H)" in st.session_state.cleared_levels: available_levels.append("Level 4: The Phase Shift (Z)")
+    if "Level 4: The Phase Shift (Z)" in st.session_state.cleared_levels: available_levels.append("Level 5: The Entanglement (CNOT)")
+    if "Level 5: The Entanglement (CNOT)" in st.session_state.cleared_levels: available_levels.append("Tutorial Boss: The Toffoli (CCNOT)")
 
 # UI Tabs: Split the app into a Game Area and a Shop Area
 # Add this to your sidebar section
@@ -115,7 +147,7 @@ if "Level 5: The Entanglement (CNOT)" in st.session_state.cleared_levels: availa
 # ==========================================
 #               TAB 1: THE GAME
 # ==========================================
-if current_page == "🎮 Play Puzzle":
+
     level_name = st.selectbox("Choose a level:", available_levels)
     level_data = levels[level_name]
     num_qubits = level_data["qubits"]
@@ -123,7 +155,7 @@ if current_page == "🎮 Play Puzzle":
     level_reward = level_data["reward"]
 
     # Dynamic Circuit Management
-    if "current_level" not in st.session_state or st.session_state.current_level != level_name or st.sidebar.button("Reset Circuit 🔄"):
+    if "current_level" not in st.session_state or st.session_state.current_level != level_name:
         st.session_state.current_level = level_name
         st.session_state.qc = QuantumCircuit(num_qubits)
         st.session_state.checked = False 
@@ -144,7 +176,7 @@ if current_page == "🎮 Play Puzzle":
 
     if num_qubits == 1:
         with st.expander("Gates"):
-            col1, col2, col3, col4, col5 = st.columns(5)
+            col1, col2, col3, col4, = st.columns(4)
             with col1:
                 if st.button("Apply X Gate"): qc.x(0)
             with col2:
@@ -175,6 +207,40 @@ if current_page == "🎮 Play Puzzle":
                 if st.button("CNOT (Control: q0, Target: q1)"): qc.cx(0, 1)
                 if st.button("CNOT (Control: q1, Target: q0)"): qc.cx(1, 0)
 
+    elif num_qubits == 3:
+        col1, col2, col3, col4, col5 = st.columns(5)
+        with col1:
+            with st.expander("Qubit(0) Controls"):
+                if st.button("X (q0)"): qc.x(0)
+                if st.button("Y (q0)"): qc.y(0)
+                if st.button("Z (q0)"): qc.z(0)
+                if st.button("H (q0)"): qc.h(0)
+        with col2:
+            with st.expander("Qubit(1) Controls"):
+                if st.button("X (q1)"): qc.x(1)
+                if st.button("Y (q1)"): qc.y(1)
+                if st.button("Z (q1)"): qc.z(1)
+                if st.button("H (q1)"): qc.h(1)
+        with col3:
+            with st.expander("Qubit(2) Controls"):
+                if st.button("X (q2)"): qc.x(2)
+                if st.button("Y (q2)"): qc.y(2)
+                if st.button("Z (q2)"): qc.z(2)
+                if st.button("H (q2)"): qc.h(2)
+        with col4:
+            with st.expander("Two-Qubit Gates"):
+                if st.button("CNOT (Ctrl: q0, Targ: q1)"): qc.cx(0, 1)
+                if st.button("CNOT (Ctrl: q1, Targ: q0)"): qc.cx(1, 0)
+                if st.button("CNOT (Ctrl: q0, Targ: q2)"): qc.cx(0, 2)
+                if st.button("CNOT (Ctrl: q2, Targ: q0)"): qc.cx(2, 0)
+                if st.button("CNOT (Ctrl: q1, Targ: q2)"): qc.cx(1, 2)
+                if st.button("CNOT (Ctrl: q2, Targ: q1)"): qc.cx(2, 1)
+        with col5:
+            with st.expander("Three-Qubit Gates"):
+                if st.button("Toffoli (Ctrl: q0 & q1, Targ: q2)"): qc.ccx(0, 1, 2)
+                if st.button("Toffoli (Ctrl: q0 & q2, Targ: q1)"): qc.ccx(0, 2, 1)
+                if st.button("Toffoli (Ctrl: q1 & q2, Targ: q0)"): qc.ccx(1, 2, 0)
+
     # Evaluation
     current_state = Statevector(qc)
 
@@ -186,26 +252,33 @@ if current_page == "🎮 Play Puzzle":
         st.pyplot(fig, use_container_width=False)
 
 
-    if st.button("Check Circuit ✅", type="primary"):
-        st.session_state.checked = True
-        
-        
-        st.write("### 🔍 Results")
-        st.write("**Your Resulting State Vector:**")
-        st.code(np.round(current_state.data, 3))
-    
-  
+    col_check,col_reset = st.columns([2,2]) 
 
+    with col_check:
+        if st.button("Check Circuit", type="primary", use_container_width=True):
+            st.session_state.checked = True
+            st.write("### 🔍 Results")
+            st.write("**Your Resulting State Vector:**")
+            st.code(np.round(current_state.data, 3))
 
+    with col_reset:
+        # This button will now sit right next to the Check button
+        if st.button("Reset", use_container_width=True):
+            st.session_state.qc = QuantumCircuit(num_qubits)
+            st.session_state.checked = False
+            st.rerun()
+        
     if st.session_state.checked:
         if current_state.equiv(target_state):
             st.success("🎉 Thanks, I got my state! and you got your catty-coin!")
+            st.balloons()
+            #st.toast(f"💰 You earned {level_reward} Catty-Coins! Check the textbook for your new unlock.")
+         # Fun visual reward
             
             # Reward Logic: Only give coins if it's their first time beating it
             if level_name not in st.session_state.cleared_levels:
                 st.session_state.cleared_levels.add(level_name)
                 st.session_state.coins += level_reward
-                st.balloons()
                 st.toast(f"💰 You earned {level_reward} Catty-Coins! Check the textbook for your new unlock.")
                 st.rerun() # Forces a refresh to instantly update the dropdown and textbook
             st.session_state.checked = False
@@ -300,8 +373,16 @@ if current_page == "📖 How to Play":
     else:
         st.error(f"Could not find image at: {reset_img}")
 
+    st.subheader("5. Understanding the Gates")
+    st.write("If you are confused about what the gates do, simply click on the **Readme-Gates** tab from sidebar to get a thorough understanding of what each gate does to a qubit state. You can unlock this information by clearing the level, or you can have a quick peek at the hints in the sidebar, but the Readme-Gates tab will give you a much more detailed explanation of how each gate manipulates quantum states.")
+    readme_img = os.path.join(BASE_DIR, "assets", "readme.png")
+    if os.path.exists(readme_img):
+        st.image(readme_img)
+    else:
+        st.error(f"Could not find image at: {readme_img}")
 
-    st.subheader("5. The Quantum Shop")
+
+    st.subheader("6. The Quantum Shop")
     st.write("Once you successfully clear a level, you earn catty-coins! Navigate to the **Quantum Shop** tab at the top of the screen to spend your coins on unlocking real-world quantum physics secrets and much more in the future.")
     shop_img = os.path.join(BASE_DIR, "assets", "shop.png")
     if os.path.exists(shop_img):
@@ -600,3 +681,246 @@ if current_page == "🎲 symbols sheets":
     | $\\otimes$ | "Tensor Product"| **Parallel Bus / Wires** | Math used to combine independent qubits into one system. |
     """)
     st.divider()
+
+# ==========================================
+#                GAME
+# ==========================================
+if current_page == "🎮 Play Challenge":
+
+        st.header("🎯 The Challenge Mode")
+            
+            # 1. THE TEXTBOOK DATA REGISTRY
+            # This stores all the physics constants and targets in one clean spot
+        challenges = {
+                "Challenge A": {
+                    "qubits": 1,
+                    "target": [1/np.sqrt(2), 1/np.sqrt(2)],
+                    "initial_state": "$|0\\rangle$",
+                    "goal_text": "Create the $|+\\rangle$ state (Equal Superposition)",
+                    "output": " $\\frac{1}{\\sqrt{2}}|0\\rangle + \\frac{1}{\\sqrt{2}}|1\\rangle$",
+                    "reward": 20,
+                    "reference": ""
+                },
+                "Challenge B": {
+                    "qubits": 2,
+                    "target": [1/np.sqrt(2), 0, 0, 1/np.sqrt(2)],
+                    "initial_state": " $|00\\rangle$",
+                    "goal_text": "Create the $|\\Phi^+\\rangle$ entangled state",
+                    "output": "$\\frac{1}{\\sqrt{2}}|00\\rangle + \\frac{1}{\\sqrt{2}}|11\\rangle$",
+                    "reward": 25,
+                    "reference": "*Quantum Computation* (McMahon), Chapter 8."
+                },
+                "Challenge C": {
+                    "qubits": 2,
+                    "target": [0, 1/np.sqrt(2), 0, -1/np.sqrt(2)],
+                    "initial_state": "$|01\\rangle$",
+                    "goal_text": "Use a CNOT to flip the phase of the Control qubit",
+                    "output": "$\\frac{1}{\\sqrt{2}}|01\\rangle - \\frac{1}{\\sqrt{2}}|11\\rangle$",
+                    "reward": 30,
+                    "reference": ""
+                },
+                "Challenge D: The Imaginary Spin": {
+                    "qubits": 1,
+                    "target": [0, 1j], # 0 probability of |0>, 100% probability of |1> but with an imaginary phase
+                    "initial_state": "Initial State: $|0\\rangle$",
+                    "goal_text": "Objective: Create the state $i|1\\rangle$. Hint: Think about cartwheels.",
+                    "output": "$i|1\\rangle$",
+                    "reference": "",
+                    "reward": 15
+                },
+                "Challenge E: The Un-Entangler": {
+                    "qubits": 2,
+                    "target": [1, 0, 0, 0], # Pure |00> state
+                    "initial_state": "Initial State: $\\frac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)$ (Bell State)",
+                    "goal_text": "Objective: Destroy the entanglement and return to $|00\\rangle$.",
+                    "output": "$|00\\rangle$",
+                    "reference": "",
+                    "reward": 40
+                },
+                "Challenge F: The Quantum Swap": {
+                    "qubits": 2,
+                    "target": [0, 0, 1, 0], # The |10> state
+                    "initial_state": "Initial State: $|01\\rangle$",
+                    "goal_text": "Objective: Swap the states of the qubits using ONLY CNOT gates.",
+                    "output": "$|10\\rangle$",
+                    "reference": "",
+                    "reward": 50
+                }
+            }
+        with st.popover("Objective Menu", use_container_width=True):
+            st.write("These challenges are adapted from various textbooks on *Quantum Computation and Circuit Design* by various authors. The examples can added from the suggestions from local communities. The goal is to give players a taste of the classic textbook exercises, but in a more interactive way. Each challenge has a specific target state that you must create using the quantum gates at your disposal. If you can match the target state, you win the challenge.")
+            ch_choice = st.radio("Objectives", list(challenges.keys()), horizontal=True, label_visibility="collapsed")
+
+                
+            ch_data = challenges[ch_choice]
+            num_q = ch_data["qubits"]
+            target_sv = Statevector(ch_data["target"])
+            ch_reward = ch_data["reward"]
+
+            # 3. MISSION BRIEFING (Only shows if NOT cleared yet)
+            if ch_choice not in st.session_state.cleared_levels:
+                with st.expander("📂 View Mission Briefing", expanded=True):
+                    st.info(f"**Current Mission:** {ch_data['goal_text']} = {ch_data['output']}")
+                    st.info(f"**Initial State:** {ch_data['initial_state']}")
+                    st.write(f"Reference: {ch_data['reference']}")
+                    st.write(f"**Reward for clearing:** {ch_reward} 🐈‍⬛")
+                    if ch_choice in st.session_state.cleared_levels:
+                        st.success("✅ Challenge completed!")
+
+# --- SESSION STATE & TIME MACHINE ---
+            # --- SESSION STATE & TIME MACHINE ---
+            if "active_ch" not in st.session_state or st.session_state.active_ch != ch_choice:
+                st.session_state.active_ch = ch_choice
+                st.session_state.qc = QuantumCircuit(num_q)
+                
+                # Custom starting states for specific challenges
+                if ch_choice == "Challenge C: Phase Kickback": 
+                    st.session_state.qc.x(1) 
+                elif ch_choice == "Challenge E: The Un-Entangler":
+                    st.session_state.qc.h(0)
+                    st.session_state.qc.cx(0, 1)
+                elif ch_choice == "Challenge F: The Quantum Swap":
+                    st.session_state.qc.x(1)
+
+                # Initialize the History
+                st.session_state.history = [st.session_state.qc.copy()]
+                st.session_state.history_idx = 0
+                st.session_state.checked = False
+                
+                # Initialize the History with the blank starting circuit
+                st.session_state.history = [st.session_state.qc.copy()]
+                st.session_state.history_idx = 0
+                st.session_state.checked = False
+
+            qc = st.session_state.qc
+
+            # --- HELPER FUNCTION: SAVE SNAPSHOT ---
+            # This function runs every time a gate is clicked
+            def save_state():
+                # If the user undid a few steps and then clicked a new gate, erase the "alternate future"
+                st.session_state.history = st.session_state.history[:st.session_state.history_idx + 1]
+                # Save a copy of the new circuit state
+                st.session_state.history.append(st.session_state.qc.copy())
+                # Move our timeline pointer forward
+                st.session_state.history_idx += 1        
+        
+        col_main, col_gates = st.columns([8,3])
+
+
+                # 2. SELECTION LOGIC
+
+                    
+        with col_gates:        # --- THE CIRCUIT VISUALIZER ---
+            with st.container(border=True):
+
+                with st.expander("🛠️ Available Quantum Gates", expanded=True):
+            
+            # This loop automatically builds a row for however many qubits the challenge has!
+                    for i in range(num_q):
+                        st.markdown(f"**Qubit {i}**")
+                
+                # Create 4 tiny columns just for the buttons on this specific row
+                        g1, g2, g3, g4 = st.columns(4)
+                
+                        with g1:
+                            if st.button("X", key=f"x{i}", use_container_width=True): qc.x(i);save_state()
+                        with g2:
+                            if st.button("Y", key=f"y{i}", use_container_width=True): qc.y(i);save_state()
+                        with g3:
+                            if st.button("Z", key=f"z{i}", use_container_width=True): qc.z(i);save_state()
+                        with g4:
+                            if st.button("H", key=f"h{i}", use_container_width=True): qc.h(i);save_state()
+                    
+                        st.divider() # Adds a neat line between qubits
+                
+            # Multi-Qubit Gates (Placed at the very bottom, taking up the full width)
+                    if num_q > 1:
+                        st.markdown("**Two-Qubit Gates**")
+                        if st.button("CNOT (Ctrl: q0, Targ: q1)", key="cx01", use_container_width=True): qc.cx(0, 1);save_state()
+                        if st.button("CNOT (Ctrl: q1, Targ: q0)", key="cx10", use_container_width=True): qc.cx(1, 0);save_state() 
+                    if num_q > 2:
+                        st.markdown("**Three-Qubit Gates**")
+                        if st.button("Toffoli (Ctrl: q0,q1, Targ: q2)", key="ccx012", use_container_width=True): qc.ccx(0, 1, 2);save_state()   
+                        if st.button("Toffoli (Ctrl: q0,q2, Targ: q1)", key="ccx021", use_container_width=True): qc.ccx(0, 2, 1);save_state()
+                        if st.button("Toffoli (Ctrl: q1,q2, Targ: q0)", key="ccx120", use_container_width=True): qc.ccx(1, 2, 0);save_state()
+        with col_main:
+
+                    
+                # 4. THE SCROLLABLE WORKSPACE
+                    # This keeps the Header and Selector FIXED at the top while the workspace scrolls
+                with st.container(border=True):            # --- SESSION STATE & CIRCUIT ---
+                    st.warning(f"{ch_data['initial_state']} to {ch_data['output']}")
+                    # 3. SESSION STATE MANAGEMENT
+                    # This resets the circuit ONLY when you switch to a DIFFERENT challenge
+                        # For Challenge C, we start with q1 in the |1> state per the textbook
+
+                    
+
+                # 4. UI DISPLAY    
+                    # --- GATE BUTTONS ---
+                    
+                with st.container(border=True):            # --- SESSION STATE & CIRCUIT ---
+                    st.write("### Your Circuit Design:")
+                    fig = qc.draw(output='mpl', initial_state=True)
+                    st.pyplot(fig, use_container_width=False)
+
+                # --- THE CORNER CONTROLS ---
+                st.divider()
+                col_undo,col_check, col_reset,col_redo = st.columns([1,4,4,1])
+
+                with col_undo:
+                # Disable the button if we are at the start of the history
+                    can_undo = st.session_state.history_idx > 0
+                    if st.button("↩️", use_container_width=True, disabled=not can_undo):
+                        st.session_state.history_idx -= 1
+                        # Load the previous circuit copy
+                        st.session_state.qc = st.session_state.history[st.session_state.history_idx].copy()
+                        st.session_state.checked = False
+                        st.rerun()
+                with col_check:
+                    if st.button("Check Circuit", type="primary", use_container_width=True):
+                        st.session_state.checked = True
+                        
+                
+                with col_redo:
+                # Disable the button if we are at the end of the history
+                    can_redo = st.session_state.history_idx < len(st.session_state.history) - 1
+                    if st.button("↪️", use_container_width=True, disabled=not can_redo):
+                        st.session_state.history_idx += 1
+                        # Load the next circuit copy
+                        st.session_state.qc = st.session_state.history[st.session_state.history_idx].copy()
+                        st.session_state.checked = False
+                        st.rerun()
+                with col_reset:
+                    if st.button("Reset", use_container_width=True):
+                        # Reset the circuit
+                        st.session_state.qc = QuantumCircuit(num_q)
+                        if ch_choice == "Challenge C: Phase Kickback": st.session_state.qc.x(1) 
+                        
+                        # Wipe the time machine clean!
+                        st.session_state.history = [st.session_state.qc.copy()]
+                        st.session_state.history_idx = 0
+                        
+                        st.session_state.checked = False
+                        st.rerun()
+
+                # --- WIN LOGIC ---
+                if st.session_state.checked:
+                    current_sv = Statevector(qc)
+                    st.write("### 🔍 Results")
+                    st.write("**Your Resulting State Vector:**")
+                    st.code(np.round(current_sv.data, 3))        
+                    if Statevector(qc).equiv(target_sv):
+                        st.success(f"🏆 Successfully completed {ch_choice} !")
+                        st.session_state.cleared_levels.add(ch_choice)
+                        if ch_choice not in st.session_state.cleared_levels:
+                            st.session_state.cleared_levels.add(ch_choice)
+                            st.session_state.coins += ch_reward
+                            st.toast(f"💰 You earned {ch_reward} Catty-Coins!",icon="🐈‍⬛")
+                            st.rerun() # Forces a refresh to instantly update the dropdown and textbook
+                        st.session_state.checked = False
+                    else:
+                        st.error("❌ Vector Mismatch. Try again.")
+
+
+        
