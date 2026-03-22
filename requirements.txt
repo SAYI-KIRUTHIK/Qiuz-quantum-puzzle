@@ -2,3 +2,4 @@ streamlit
 qiskit
 matplotlib
 pylatexenc
+numpy
