@@ -1,10 +1,15 @@
+import os
+
 import streamlit as st
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 # --- 1. SETUP, MEMORY & SIDEBAR ---
-st.set_page_config(page_title="Quantum_circuit_Puzzle", page_icon="🧩")
+st.set_page_config(page_title="Quantum_circuit_Puzzle", page_icon="🧩",layout="wide")
 
 # Initialize our Game Economy Memory
 if "coins" not in st.session_state:
@@ -17,11 +22,19 @@ if "checked" not in st.session_state:
     st.session_state.checked = False
 
 st.title("Qiuz: A Quantum Puzzle 🧩")
+st.divider()
+
 
 # Sidebar
 st.sidebar.title("Game Status")
-st.sidebar.metric(label="Schrödinger Coins", value=f"{st.session_state.coins} 🐈‍⬛")
+st.sidebar.metric(label="Catty-Coins", value=f"{st.session_state.coins} 🐈‍⬛")
 st.sidebar.divider()
+    
+st.sidebar.subheader("Navigation")
+current_page = st.sidebar.radio("", ["🎮 Play Puzzle", "🏪 Quantum Shop", "📖 How to Play","🎲 symbols sheets","🌀 Readme-Gates"])
+
+
+
 
 with st.sidebar.expander("💡 Need a Hint?"):
     with st.expander("X Gate (NOT)"):
@@ -42,44 +55,68 @@ with st.sidebar.expander("💡 Need a Hint?"):
 
 # --- 2. DEFINE LEVELS (With Rewards Included!) ---
 levels = {
-    "Level 1: The Bit Flip": {
+    "Level 1: The Bit Flip (X)": {
         "qubits": 1, 
         "target": Statevector([0.+0.j, 1.+0.j]), 
         "goal_text": "I want, $|1\\rangle$ or [0.+0.j, 1.+0.j]",
         "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
         "reward": 10
     },
-    "Level 2: Superposition": {
+    "Level 2: The Cartwheel (Y)": {
+        "qubits": 1, 
+        "target": Statevector([0.+0.j, 0.+1.j]), 
+        "reward": 15,
+        "goal_text": "I want, $i|1\\rangle$ or [0.+0.j, 0.+1.j]",
+        "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]"
+        },
+    "Level 3: The Superposition (H)": {
         "qubits": 1, 
         "target": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]), 
-        "goal_text": "I want, $|+\\rangle$ or [1/np.sqrt(2), 1/np.sqrt(2)] (Equal superposition)",
+        "goal_text": "I want, $|+\\rangle$ or $\\frac{1}{\\sqrt{2}}([1, 1/np.sqrt(2)]) (Equal superposition)",
         "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
         "reward": 10
     },
-    "Level 3: Phase Shift": {
+    "Level 4: The Phase Shift (Z)": {
         "qubits": 1, 
         "target": Statevector([1/np.sqrt(2), -1/np.sqrt(2)]), 
-        "goal_text": "I want, $|-\\rangle$ or [1/np.sqrt(2), -1/np.sqrt(2)] (Superposition with a negative phase)",
+        "goal_text": "I want, $|-\\rangle$ or $\\frac{1}{\\sqrt{2}}([1, -1/np.sqrt(2)]) (Superposition with a negative phase)",
         "initial_state": "Qubit(s) with me, $|0\\rangle$ or [1.+0.j, 0.+0.j]",
         "reward": 15
-    },
-    "Level 4: Entanglement": {
+    },    
+    "Level 5: The Entanglement (CNOT)": {
         "qubits": 2, 
         "target": Statevector([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]), 
         "goal_text": "I want, $\\frac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)$ or $\\frac{1}{\\sqrt{2}}[1, 0, 0, 1]$ (The Bell State)",
         "initial_state": "Qubit(s) with me, $|00\\rangle$ or [1, 0, 0, 0]",
         "reward": 25
-    }
+    },
+    "Tutorial Boss: The Toffoli (CCNOT)": {
+        "qubits": 3, 
+        "target": Statevector([0, 0, 0, 0, 0, 0, 0, 1]),
+        "goal_text": "I want, $|111\\rangle$ or [0, 0, 0, 0, 0, 0, 0, 1] (The Toffoli State)",
+        "initial_state": "Qubit(s) with me, $|000\\rangle$ or [1, 0, 0, 0, 0, 0, 0, 0]", 
+        "reward": 50}     # Target is |111>
 }
 
+# --- CAMPAIGN PROGRESSION LOGIC ---
+# This checks what the user has beaten and only reveals the next level
+available_levels = ["Level 1: The Bit Flip (X)"]
+if "Level 1: The Bit Flip (X)" in st.session_state.cleared_levels: available_levels.append("Level 2: The Cartwheel (Y)")
+if "Level 2: The Cartwheel (Y)" in st.session_state.cleared_levels: available_levels.append("Level 3: The Superposition (H)")
+if "Level 3: The Superposition (H)" in st.session_state.cleared_levels: available_levels.append("Level 4: The Phase Shift (Z)")
+if "Level 4: The Phase Shift (Z)" in st.session_state.cleared_levels: available_levels.append("Level 5: The Entanglement (CNOT)")
+if "Level 5: The Entanglement (CNOT)" in st.session_state.cleared_levels: available_levels.append("Tutorial Boss: The Toffoli (CCNOT)")
+
 # UI Tabs: Split the app into a Game Area and a Shop Area
-tab_play, tab_shop = st.tabs(["🎮 Play Puzzle", "🏪 Quantum Shop (Rewards)"])
+# Add this to your sidebar section
+
+
 
 # ==========================================
 #               TAB 1: THE GAME
 # ==========================================
-with tab_play:
-    level_name = st.selectbox("Choose a level:", list(levels.keys()))
+if current_page == "🎮 Play Puzzle":
+    level_name = st.selectbox("Choose a level:", available_levels)
     level_data = levels[level_name]
     num_qubits = level_data["qubits"]
     target_state = level_data["target"]
@@ -111,11 +148,11 @@ with tab_play:
             with col1:
                 if st.button("Apply X Gate"): qc.x(0)
             with col2:
-                if st.button("Apply H Gate"): qc.h(0)
+                if st.button("Apply Y Gate"): qc.y(0)
             with col3:
                 if st.button("Apply Z Gate"): qc.z(0)
             with col4:
-                if st.button("Apply Y Gate"): qc.y(0)
+                if st.button("Apply H Gate"): qc.h(0)
             #with col5:
             #   if st.button("Apply CCNot Gate"): qc.ccx(0, 1, 2) # This will do nothing since we only have 1 qubit, but it's fun to try!
 
@@ -123,16 +160,16 @@ with tab_play:
         col1, col2, col3 = st.columns(3)
         with col1:
             with st.expander("Qubit(0) Controls"):
-                if st.button("H Gate on q0"): qc.h(0)
                 if st.button("X Gate on q0"): qc.x(0)
-                if st.button("Z Gate on q0"): qc.z(0)
                 if st.button("Y Gate on q0"): qc.y(0)
+                if st.button("Z Gate on q0"): qc.z(0)
+                if st.button("H Gate on q0"): qc.h (0)
         with col2:
             with st.expander("Qubit(1) Controls"):
-                if st.button("H Gate on q1"): qc.h(1)
                 if st.button("X Gate on q1"): qc.x(1)
-                if st.button("Z Gate on q1"): qc.z(1)
                 if st.button("Y Gate on q1"): qc.y(1)
+                if st.button("Z Gate on q1"): qc.z(1)
+                if st.button("H Gate on q1"): qc.h (1)
         with col3:
             with st.expander("Multi-Qubit Controls"):
                 if st.button("CNOT (Control: q0, Target: q1)"): qc.cx(0, 1)
@@ -151,11 +188,13 @@ with tab_play:
 
     if st.button("Check Circuit ✅", type="primary"):
         st.session_state.checked = True
-
+        
+        
+        st.write("### 🔍 Results")
+        st.write("**Your Resulting State Vector:**")
+        st.code(np.round(current_state.data, 3))
     
-    st.write("### 🔍 Results")
-    st.write("**Your Resulting State Vector:**")
-    st.code(np.round(current_state.data, 3))
+  
 
 
     if st.session_state.checked:
@@ -167,20 +206,21 @@ with tab_play:
                 st.session_state.cleared_levels.add(level_name)
                 st.session_state.coins += level_reward
                 st.balloons()
-                st.toast(f"💰 You earned {level_reward} Schrödinger Coins! Go check the shop.")
-            
-            st.session_state.checked = False 
+                st.toast(f"💰 You earned {level_reward} Catty-Coins! Check the textbook for your new unlock.")
+                st.rerun() # Forces a refresh to instantly update the dropdown and textbook
+            st.session_state.checked = False
+             
         else:
             st.error("❌ This is not my target state. Can you try again?")
     st.warning("⚠️ Remember, measuring a quantum state collapses it!")
 
 
 # ==========================================
-#               TAB 2: THE SHOP
+#               PAGE 2: THE SHOP
 # ==========================================
-with tab_shop:
+if current_page == "🏪 Quantum Shop":
     st.header("🏪 The Quantum Knowledge Shop")
-    st.write("Spend your hard-earned Schrödinger Coins to unlock real-world quantum secrets!")
+    st.write("Spend your  Catty-Coins to unlock quantum secrets and many more!")
     st.metric(label="Available Balance", value=f"{st.session_state.coins} 🐈‍⬛")
     st.divider()
 
@@ -217,3 +257,346 @@ with tab_shop:
             st.session_state.coins -= 40
             st.session_state.unlocked_rewards.add("teleport")
             st.rerun()
+
+# ==========================================
+#               PAGE 3 : TUTORIAL
+# ==========================================
+
+if current_page == "📖 How to Play":
+    st.header("📖 How to Play: A Beginner's Guide")
+    st.write("Welcome to Qiuz! (ki-sz) If you are new to quantum mechanics, don't worry. This guide will show you exactly how to operate the game.")
+    
+    st.divider()
+
+    st.subheader("1. The Sidebar & Hint")
+    st.write("On the left side of your screen, you will see your **Game Status**. This tracks how many Catty-Coins (🐈‍⬛) you have earned. Below that is a **Hint** optionthat explains what each quantum gate does in a very brief way.")
+    sidebar_img = os.path.join(BASE_DIR, "assets", "sidebar.png")
+    if os.path.exists(sidebar_img): 
+        st.image(sidebar_img)
+    else:
+        st.error(f"Could not find image at: {sidebar_img}")
+
+    st.subheader("2. Applying Quantum Gates")
+    st.write("Choose a level from the dropdown menu. Your goal is to apply gates to the starting state (usually $|0\\rangle$) to match the Target State, which you can find below the drop-down menu. Click the buttons to add gates to your circuit wire.")
+    gates_img = os.path.join(BASE_DIR, "assets", "gates.png")
+    if os.path.exists(gates_img):
+        st.image(gates_img)
+    else:
+        st.error(f"Could not find image at: {gates_img}")
+
+    st.subheader("3. Checking Your Answer")
+    st.write("As you click gates, the visual circuit updates automatically and you can see your resulting state vector, below the circuit drawing. When you think you have solved it, click the red **Check Circuit ✅** button. The app will calculate the complex math and display your resulting state vector directly below the circuit drawing as mentioned previously.")
+    check_img = os.path.join(BASE_DIR, "assets", "check.png")
+    if os.path.exists(check_img):
+        st.image(check_img)
+    else:
+        st.error(f"Could not find image at: {check_img}")
+
+    st.subheader("4. Resetting Your Circuit")
+    st.write("If you want to start over with your circuit, simply click the **Reset Circuit** button from the bottom of the sidebar. This will clear all applied gates and return you to the initial state.")
+    reset_img = os.path.join(BASE_DIR, "assets", "reset.png")
+    if os.path.exists(reset_img):
+        st.image(reset_img)
+    else:
+        st.error(f"Could not find image at: {reset_img}")
+
+
+    st.subheader("5. The Quantum Shop")
+    st.write("Once you successfully clear a level, you earn catty-coins! Navigate to the **Quantum Shop** tab at the top of the screen to spend your coins on unlocking real-world quantum physics secrets and much more in the future.")
+    shop_img = os.path.join(BASE_DIR, "assets", "shop.png")
+    if os.path.exists(shop_img):
+        st.image(shop_img)
+    else:
+        st.error(f"Could not find image at: {shop_img}")
+
+    st.success("🎉 You are ready to play! Head back to the 'Play Puzzle' tab to begin.")
+
+# ==========================================
+#               PAGE 4 : GATES
+# ==========================================
+
+if current_page == "🌀 Readme-Gates":
+    st.header("🌀 Quantum Gates")
+    st.write("Before we build circuits, we need to understand what we are actually building them with.")
+    
+    st.subheader("What is a Qubit?")
+    
+    tab_beginner, tab_advanced = st.tabs(["🟢 Start Here", "🔴 The Math"])
+    
+    with tab_beginner:
+        st.info("""
+        **The Classical Bit:** Think of a normal computer bit like a light switch. It is either completely OFF (0) or completely ON (1). 
+        
+        **The Qubit:** A quantum bit is like a spinning coin. While it spins, it isn't just Heads (0) or Tails (1); it is a blurry combination of both at the same time! We call this **Superposition**. However, the moment you slap your hand down to look at it (Measurement), it collapses back into a normal 0 or 1.
+        """)
+
+    with tab_advanced:
+        st.write("**The Hilbert Space**")
+        st.write("A qubit is described by a state vector $|\psi\\rangle$ in a 2D complex Hilbert space, represented as a linear combination of basis states:")
+        st.latex(r"|\psi\rangle = \alpha|0\rangle + \beta|1\rangle")
+        st.write("Here, $\\alpha$ and $\\beta$ are complex probability amplitudes where the sum of their absolute squares must equal $1$:")
+        st.latex(r"|\alpha|^2 + |\beta|^2 = 1")
+        st.write("Unlike classical bits confined to the poles of a sphere, a qubit can be manipulated to point anywhere on the surface of a Bloch Sphere using Unitary matrices.")
+
+    # --- 2. THE LANGUAGE OF QUANTUM ---
+    st.subheader("🧮 The Language: Symbols & Vectors")
+    tab_beginner, tab_advanced = st.tabs(["🟢 Beginner", "🔴 Advanced"])
+    
+    with tab_beginner:
+        st.info("""
+        **The "Ket" Symbol**
+        In normal math, if we want to talk about the number zero, we just write `0`. But in quantum mechanics, we want to make it obvious that we are talking about a *quantum state* (our spinning coin), not just a boring number. 
+        
+        To do this, physicists put the number inside a special bracket that looks like this: $| \\rangle$. This is called a **"Ket"**.
+        
+        * **$|0\\rangle$** (Pronounced "Ket-Zero"): This is our coin sitting flat on the table showing Heads.
+        * **$|1\\rangle$** (Pronounced "Ket-One"): This is our coin sitting flat on the table showing Tails.
+        
+        Whenever you see this bracket, just know that it's a quantum state!
+        """)
+    with tab_advanced:
+        st.write("**The Computational Basis**")
+        st.write("To actually do math with quantum gates, we have to translate those 'Ket' symbols into Linear Algebra. Quantum states are represented as **column vectors**.")
+        st.write("The states $|0\\rangle$ and $|1\\rangle$ form the standard computational basis. They are defined as orthogonal vectors:")
+        
+        # Using columns to put the math side-by-side cleanly
+        col_math1, col_math2 = st.columns(2)
+        with col_math1:
+            st.latex(r"|0\rangle = \begin{pmatrix} 1 \\ 0 \end{pmatrix}")
+        with col_math2:
+            st.latex(r"|1\rangle = \begin{pmatrix} 0 \\ 1 \end{pmatrix}")
+            
+        st.write("**Building the State Vector:**")
+        st.write("Because of this, a full state in superposition ($|\\psi\\rangle = \\alpha|0\\rangle + \\beta|1\\rangle$) translates perfectly into a single matrix:")
+        st.latex(r"|\psi\rangle = \begin{pmatrix} \alpha \\ \beta \end{pmatrix}")
+        st.write("The top row tracks the amplitude for $|0\\rangle$, and the bottom row tracks the amplitude for $|1\\rangle$. Quantum gates are simply $2 \\times 2$ matrices that multiply against this column vector!")
+
+    st.divider()
+    
+
+
+# --- 2. PAULI-X GATE ---
+    st.subheader("❌ The Pauli-X Gate (Quantum NOT)")
+    tab_beginner, tab_advanced = st.tabs(["🟢 Beginner", "🔴 Advanced"])
+    
+    with tab_beginner:
+        st.info("""
+        **What does it do?**
+        The Pauli-X gate is the quantum version of a classic "NOT" switch. Think of a coin sitting on a table showing Heads ($|0\\rangle$). If you apply an X gate, you simply flip the coin over so it shows Tails ($|1\\rangle$).
+        """)
+    with tab_advanced:
+        st.write("**Matrix Representation:**")
+        st.latex(r"X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}")
+        st.write("**Dirac Notation:**")
+        st.latex(r"X = |0\rangle\langle 1| + |1\rangle\langle 0|")
+        st.write("**Core Properties:**")
+        st.write("* **Hermitian & Unitary:** $X = X^\dagger$ and $X^2 = I$.")
+        st.write("* **Bloch Sphere:** Represents a $\pi$ radian rotation around the x-axis.")
+
+    st.divider()
+
+    # --- 3. PAULI-Y GATE ---
+    st.subheader("🧭 The Pauli-Y Gate")
+    if "Level 1: The Bit Flip (X)" in st.session_state.cleared_levels:
+        tab_beginner, tab_advanced = st.tabs(["🟢 Beginner", "🔴 Advanced"])
+
+        with tab_beginner:
+            st.info("""
+            **The Gymnastics Analogy: Front Flips vs. Cartwheels**
+            
+            To understand the Y-Gate, imagine you are standing on your feet (Heads or $|0\\rangle$) and your goal is to end up in a handstand (Tails or $|1\\rangle$). 
+            
+            * **The X-Gate is a Front Flip:** You flip straight forward and land on your hands. You are upside down, and you are still facing forward.
+            * **The Y-Gate is a Cartwheel:** You flip sideways. You still land on your hands, but because of the sideways rotation, you end up facing $90^\\circ$ to the left!
+            
+            **What is Quantum Phase?**
+            That new direction you are facing is called the **Phase** (written mathematically as the imaginary number $i$). 
+            
+            If we only care whether you are on your feet or your hands (Heads or Tails), the X and Y gates do the exact same thing. But, if you need to catch another gymnast while upside down, the direction you are facing matters immensely! The Y-Gate flips the coin, but twists the direction it "faces" in the quantum world, changing how it interacts with other coins later in the game.
+            """)
+            
+        with tab_advanced:
+            st.write("**Matrix Representation:**")
+            st.write("The Pauli-Y matrix introduces complex numbers into our gate operations:")
+            st.latex(r"Y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}")
+            
+            st.write("**Dirac Notation:**")
+            st.latex(r"Y = i|1\rangle\langle 0| - i|0\rangle\langle 1|")
+            
+            st.write("**Core Properties:**")
+            st.write("* **Hermitian & Unitary:** $Y = Y^\dagger$ and $Y^2 = I$.")
+            st.write("* **Bloch Sphere:** Represents a $\pi$ radian ($180^\circ$) rotation around the y-axis. It perfectly maps $|0\\rangle \to i|1\\rangle$ and $|1\\rangle \to -i|0\\rangle$.")
+            st.write("* **The Pauli Group Identity:** $Y$ can be constructed by combining the X and Z gates with a global phase: $Y = iXZ$.")
+    else:
+        st.warning("🔒 **LOCKED:** Clear 'Level 1' to unlock the Y-Gate!")
+        
+
+
+    st.divider()
+
+    # --- 3. HADAMARD GATE ---
+    st.subheader("🔀 The Hadamard Gate (H)")
+
+    if  "Level 2: The Cartwheel (Y)" in st.session_state.cleared_levels:
+
+        tab_beginner, tab_advanced = st.tabs(["🟢 Beginner", "🔴 Advanced"])    
+        with tab_beginner:
+                st.info("""
+                **What does it do?**
+                This is the most famous gate in quantum computing. If the X-Gate flips the coin over, the Hadamard gate is the finger that **flicks the coin to make it spin.** **The Rules:**
+                * When you apply an H-Gate to a resting coin ($|0\\rangle$ or $|1\\rangle$), it puts it into a perfect 50/50 **Superposition**. 
+                * If you measure it now, you have a completely random, 50% chance of getting Heads and 50% chance of getting Tails.
+                * **The Quantum Magic:** If you apply an H-Gate to a coin that is *already* spinning, it instantly stops it and lands it perfectly flat! (Applying it twice undoes the spin).
+                """)
+        with tab_advanced:
+                st.write("**Matrix Representation:**")
+                st.write("The Hadamard gate creates an equal superposition. It is represented by the matrix:")
+                st.latex(r"H = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}")
+                
+                st.write("**Dirac Notation (Action on Basis States):**")
+                st.write("It maps the computational basis states to the diagonal basis states ($|+\\rangle$ and $|-\\rangle$):")
+                st.latex(r"H|0\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) = |+\rangle")
+                st.latex(r"H|1\rangle = \frac{1}{\sqrt{2}}(|0\rangle - |1\rangle) = |-\rangle")
+                
+                st.write("**Core Properties:**")
+                st.write("* **Hermitian & Unitary:** Like the Pauli matrices, $H = H^\dagger$ and $H^2 = I$. This is why applying it twice returns the qubit to its original state.")
+                st.write("* **Bloch Sphere:** It represents a rotation of $\pi$ about the axis $(x+z)/\sqrt{2}$. Geometrically, it reflects the state across the diagonal line halfway between the x and z axes.")
+    else:
+        st.warning("🔒 **LOCKED:** Clear 'Level 2' to unlock the Hadamard Gate!")
+
+    st.divider()
+
+    # --- 4. PAULI-Z GATE ---
+    st.subheader("⏱️ The Pauli-Z Gate (Phase Flip)")
+    if "Level 3: The Superposition (H)" in st.session_state.cleared_levels:
+        tab_beginner, tab_advanced = st.tabs(["🟢 Beginner", "🔴 Advanced"])
+        with tab_beginner:
+            st.info("""
+            **What does it do?**
+            The Z-Gate is the "Phase" gate. If you apply a Z-gate to a coin sitting on the table, **absolutely nothing happens.** Heads stays Heads, and Tails stays Tails. 
+            
+            *So what is the point?*
+            
+            The Z-Gate only shows its power when the coin is *spinning* (in a Superposition). If the coin is spinning clockwise, the Z-Gate instantly reverses it to spin counter-clockwise! 
+            
+            It doesn't change your 50/50 chances of getting Heads or Tails when you finally slap your hand down, but reversing that spin is a crucial trick used in almost every advanced quantum algorithm.
+            """)
+        with tab_advanced:
+            st.write("**Matrix Representation:**")
+            st.write("The Pauli-Z gate leaves the $|0\\rangle$ amplitude alone, but flips the sign of the $|1\\rangle$ amplitude:")
+            st.latex(r"Z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}")
+            
+            st.write("**Dirac Notation:**")
+            st.latex(r"Z = |0\rangle\langle 0| - |1\rangle\langle 1|")
+            
+            st.write("**Core Properties:**")
+            st.write("* **Bloch Sphere:** Represents a $\pi$ radian rotation around the z-axis (the vertical pole of the sphere).")
+            st.write("* **Phase Flip:** If a qubit is in the $|+\\rangle$ superposition state, the Z-gate flips it to the $|-\\rangle$ state, effectively changing its relative phase by $180^\circ$ without altering its measurement probabilities in the computational basis.")
+            st.latex(r"Z|+\rangle = |-\rangle")
+    else:
+        st.warning("🔒 **LOCKED:** Clear 'Level 3' to unlock the Z-Gate!")        
+
+    st.divider()
+
+
+
+    # --- 4. CNOT GATE ---
+    st.subheader("🔗 The CNOT (CX) Gate & Entanglement")
+
+    if "Level 4: The Phase Shift (Z)" in st.session_state.cleared_levels:
+        tab_beginner, tab_advanced = st.tabs(["🟢 Beginner", "🔴 Advanced"])
+    
+    
+        with tab_beginner:
+            st.info("""
+            **What is Control and Target?**
+            The CNOT gate connects two coins together. To understand how, think of a **motion-activated lightbulb**. 
+            * **The Control (The Sensor):** This coin just watches. Its own state never changes during the operation.
+            * **The Target (The Bulb):** This is the coin that gets acted upon.
+            
+            **The Rule:** If the Control coin is Heads ($0$), the sensor sees nothing, and the Target coin is left completely alone. If the Control coin is Tails ($1$), the sensor triggers, and it completely flips the Target coin over!
+            """)
+            
+        with tab_advanced:
+            st.write("**The Mathematical Definition of Control/Target:**")
+            st.write("Let the state of a 2-qubit system be defined as $|c, t\\rangle$, where $c$ is the Control qubit and $t$ is the Target qubit. The CNOT gate performs modulo 2 addition (an XOR operation) on the target, leaving the control unchanged:")
+            st.latex(r"CX|c, t \rangle = |c, c \oplus t \rangle")
+            
+            st.write("**Matrix Representation (4D Hilbert Space):**")
+            st.write("Operating on the basis states $\{|00 \\rangle, |01\\rangle, |10\\rangle, |11\\rangle\}$, the matrix is:")
+            st.latex(r"CX = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{pmatrix}")
+    else:
+        st.warning("🔒 **LOCKED:** Clear 'Level 4' to unlock the CNOT Gate!")    
+    st.divider()
+
+    # --- 5. CCNOT GATE ---
+    st.subheader("🚦 The Toffoli (CCNOT) Gate: The Classical Bridge")
+
+    if "Level 5: The Entanglement (CNOT)" in st.session_state.cleared_levels:    
+        tab_beginner, tab_advanced = st.tabs(["🟢 Beginner", "🔴 Advanced"])
+        
+        with tab_beginner:
+            st.info("""
+            **The Two-Key System**
+            If the CNOT gate is a motion sensor, the CCNOT (Controlled-Controlled-NOT) gate is like a nuclear launch console that requires **two** keys to be turned at the exact same time.
+            
+            It uses 3 coins: Two **Controls** and one **Target**.
+            * **The Rule:** It only flips the Target coin IF Control #1 **AND** Control #2 are both Tails ($1$). If either control is Heads ($0$), the target is left alone.
+            
+            **Is this the Universal Gate?**
+            Yes and no! 
+            * **Classical Universality:** The Toffoli gate is the quantum version of the famous **NAND** gate. Because it is reversible, it allows a quantum computer to simulate any classical computer program perfectly. 
+            * **Quantum Universality:** To simulate the universe, you need superposition. If you pair the Toffoli gate with our coin-spinning friend, the **Hadamard (H) Gate**, you achieve full **Quantum Universality**. With just Toffoli and Hadamard, you can calculate anything the universe allows!
+            """)
+            
+        with tab_advanced:
+            st.write("**Reversible Computing & Landauer's Principle**")
+            st.write("Classical logic gates like AND/NAND are irreversible (they map 2 bits to 1 bit, destroying information and generating heat). Quantum mechanics requires unitary, reversible operations. The Toffoli gate achieves classical universality reversibly by using 3 qubits.")
+            
+            st.write("**The Mathematical Definition:**")
+            st.write("Operating on three qubits $|c_1, c_2, t\\rangle$, the Toffoli gate applies a Pauli-X to the target only if both controls are $|1\\rangle$. This is equivalent to mapping the target to the XOR of itself and the AND of the controls:")
+            st.latex(r"CCNOT|c_1, c_2, t\rangle = |c_1, c_2, t \oplus (c_1 \land c_2)\rangle")
+            
+            st.write("**Matrix Representation (8D Hilbert Space):**")
+            st.write("Because it operates on 3 qubits, it is represented by an $8 \\times 8$ identity matrix, where the bottom right $2 \\times 2$ block is a Pauli-X gate:")
+            st.latex(r"""
+            CCNOT = \begin{pmatrix} 
+            1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+            0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+            0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+            0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+            0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+            0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+            0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 \\
+            0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 
+            \end{pmatrix}
+            """)
+            
+            st.write("**Shi's Theorem (Quantum Universality):**")
+            st.write("While Toffoli is universal for reversible boolean logic, Shi's Theorem formally proves that the set consisting of the Toffoli gate and the Hadamard gate is universal for quantum computation.")
+    else:
+        st.warning("🔒 **LOCKED:** ' Level 5' to unlock the Toffoli Gate!")
+    st.divider()
+
+if current_page == "🎲 symbols sheets":
+    st.subheader("🎲 Quantum Symbols Chart Sheet")
+    st.write("Use this lookup table to translate quantum symbols back into classical digital logic.")
+
+    st.markdown("""
+    | Symbol | How to Read It | Classical / Digital Equivalent | Quantum Meaning & Function |
+    | :--- | :--- | :--- | :--- |
+    | $0$ or $1$ | "Zero" or "One" | **Bit** (Standard ON/OFF logic state) | *Not used.* Quantum mechanics requires the "Ket" notation. |
+    | $\\vert0\\rangle$ | "Ket-Zero" | **Bit = 0** (OFF / False) | The baseline quantum state. A coin resting flat on Heads. |
+    | $\\vert1\\rangle$ | "Ket-One" | **Bit = 1** (ON / True) | The flipped quantum state. A coin resting flat on Tails. |
+    | $\\vert+\\rangle$ | "Ket-Plus" | *None* | **Superposition**. The coin is spinning. An equal blend of 0 and 1. |
+    | $\\alpha$ , $\\beta$ | "Alpha" , "Beta" | **Probability** | **Probability Amplitudes**. Complex numbers dictating the state. |
+    | $X$ | "Pauli-X Gate" | **NOT Gate** (Inverter) | Flips $\\vert0\\rangle$ to $\\vert1\\rangle$ and vice-versa. |
+    | $Y$ | "Pauli-Y Gate" | *None* | Flips $\\vert 0 \\rangle$ and $\\vert 1 \\rangle$ but adds an imaginary phase ($i$). |
+    | $Z$ | "Pauli-Z Gate" | *None* | Does nothing to $\\vert 0 \\rangle$. Flips the phase/sign of $\\vert 1 \\rangle$. |   
+    | $H$ | "Hadamard Gate" | *None* | Puts a resting qubit into a perfect superposition. |
+    | $CX$ | "C-NOT" | **XOR Gate** | Flips Target if Control is $\\vert1\\rangle$. Creates Entanglement. |
+    | $CCNOT$ | "Toffoli Gate" | **NAND / AND Gate** | Flips Target if Control 1 AND Control 2 are $\\vert1\\rangle$. |
+    | $\\oplus$ | "O-Plus" (XOR) | **Modulo-2 Addition** | Math symbol for the XOR logic inside CNOT/Toffoli. |
+    | $\\otimes$ | "Tensor Product"| **Parallel Bus / Wires** | Math used to combine independent qubits into one system. |
+    """)
+    st.divider()
