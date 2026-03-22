@@ -2,7 +2,7 @@
 
 An interactive, gamified educational tool designed to introduce beginners and university students to the fundamentals of quantum mechanics and quantum circuit design. 
 
-**Play it live here:** [(https://qiuz-quantum-puzzle-sa-k-hi-aminigame.streamlit.app/)]
+**Play it live here:** [https://qiuz-quantum-puzzle-sa-k-hi-aminigame.streamlit.app/]
 
 ## 📖 Pedagogical Goal
 Bridging the gap between abstract linear algebra and practical quantum computing can be difficult. This application gamifies the learning process by translating complex quantum state manipulation into an intuitive puzzle format. 
