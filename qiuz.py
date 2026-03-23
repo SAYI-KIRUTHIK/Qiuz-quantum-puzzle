@@ -71,6 +71,14 @@ def load_player_data(username):
             
     except Exception as e:
         st.error(f"Failed to load player data: {e}")
+if "story_circuit_logic" not in st.session_state:
+    st.session_state.story_circuit_logic = [] # Alice's personal circuit memory
+
+# Two quick callback functions for Alice's terminal
+def add_story_gate(gate):
+    st.session_state.story_circuit_logic.append(gate)
+def clear_story_circuit():
+    st.session_state.story_circuit_logic = []
 # ==========================================
 #        1. THE GATEKEEPER (LOGIN)
 # ==========================================
@@ -1404,38 +1412,41 @@ else:
             "Chapter 1: The Quantum Key (BB84)": {
                 "start": {
                     "icon": "👩‍💻",
-                    "text": "Alice sits at her terminal. The neon glow reflects in her eyes. 'I need to send the launch codes to Bob,' she mutters, 'but Eve is definitely listening on the standard channels.'\n\nWhat should Alice do?",
+                    "text": "Alice sits at her terminal. The neon glow reflects in her eyes. 'I need to send a secure key to Bob,' she mutters, 'but Eve is listening on the standard channels.'\n\nWhat should Alice do?",
                     "choices": [
                         {"label": "Send it via standard encrypted email.", "next_scene": "fail_email"},
-                        {"label": "Boot up the Quantum Channel (BB84 Protocol).", "next_scene": "q_channel"}
+                        {"label": "Boot up the Quantum Channel.", "next_scene": "q_channel"}
                     ]
                 },
                 "fail_email": {
                     "icon": "🚨",
                     "text": "Alice hits send. Five seconds later, her screen flashes RED. Eve cracked the RSA encryption. The codes are stolen.\n\n**MISSION FAILED.**",
-                    "choices": [
-                        {"label": "Rewind Time (Retry)", "next_scene": "start"}
-                    ]
+                    "choices": [{"label": "Rewind Time (Retry)", "next_scene": "start"}]
                 },
                 "q_channel": {
                     "icon": "⚛️",
-                    "text": "Alice initializes the quantum link. 'Smart,' she thinks. 'If Eve tries to look at the qubits, she'll collapse the wave function and we will know she's there.'\n\n(Quantum Mechanics sandbox integration coming in Phase 2!)",
-                    "choices": [
-                        {"label": "End of Phase 1 Demo. Restart?", "next_scene": "start"}
-                    ]
+                    "text": "Alice initializes the quantum link. She decides to send a binary '0', but encoded in the **Hadamard (Diagonal) Basis** so Eve can't easily read it.\n\n**MISSION:** Prepare your Qubit in the $|+\\rangle$ state (Equal Superposition), then Transmit it to Bob.",
+                    "is_puzzle": True, # 🌟 THE MAGIC FLAG 🌟
+                    "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]), # The exact math for |+>
+                    "success_scene": "bob_receives",
+                    "fail_scene": "wrong_state"
+                },
+                "wrong_state": {
+                    "icon": "❌",
+                    "text": "Bob calls Alice on the burner phone. 'Alice, I measured the qubit in the diagonal basis, but I got completely random data. Did you send the wrong state?'\n\nEve chuckles softly in the background.\n\n**MISSION FAILED.**",
+                    "choices": [{"label": "Recalibrate Qubit (Retry)", "next_scene": "q_channel"}]
+                },
+                "bob_receives": {
+                    "icon": "📞",
+                    "text": "The secure phone rings. It's Bob.\n\n'Alice, I received the qubit and measured it in the diagonal basis. I got a perfect 0. The quantum link is secure. Eve is blind.'\n\n**CHAPTER 1 CLEARED!**",
+                    "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
+                    "chapter_clear": True # We can use this later to award coins!
                 }
             },
             "Chapter 2: The Spooky Link (Teleportation)": {
-                "start": {
-                    "icon": "🚧",
-                    "text": "This chapter is currently under construction! You will need to build an entanglement bridge with Bob to proceed.",
-                    "choices": [
-                        {"label": "Go Back", "next_scene": "start"}
-                    ]
-                }
             }
-        }
-
+        }    # ... keep your existing Chapter 2 placeholder here
+            
         # --- 2. FAST CALLBACK TO CHANGE SCENES ---
         def change_scene(next_scene_name):
             st.session_state.current_scene = next_scene_name
@@ -1466,28 +1477,66 @@ else:
             scene_data = story_script[selected_chap][st.session_state.current_scene]
             
             # We use a container to make it look like a sleek terminal box
+            # We use a container to make it look like a sleek terminal box
             with st.container(border=True):
                 # Draw the Icon and Text
                 st.write(f"# {scene_data['icon']}")
                 st.write(scene_data['text'])
+                st.write("") 
                 
-                st.write("") # Add a little blank space
-                
-                # Draw the Choices dynamically
-                st.write("**> AWAITING INPUT:**")
-                
-                # We put the buttons in columns so they sit side-by-side if there are multiple choices
-                cols = st.columns(len(scene_data['choices']))
-                
-                for idx, choice in enumerate(scene_data['choices']):
-                    with cols[idx]:
-                        # We pass the 'next_scene' into our callback function!
-                        st.button(
-                            choice['label'], 
-                            key=f"{selected_chap}_{st.session_state.current_scene}_{idx}", 
-                            on_click=change_scene, 
-                            args=(choice['next_scene'],),
-                            use_container_width=True
-                        )
+                # ==========================================
+                # 🧩 SCENARIO A: IT'S A PUZZLE SCENE!
+                # ==========================================
+                if scene_data.get("is_puzzle"):
+                    st.divider()
+                    st.write("### 🧰 Alice's Quantum Terminal")
+                    
+                    # 1. The Mini Toolbox
+                    col1, col2, col3, col4, col5 = st.columns(5)
+                    col1.button("Apply X", on_click=add_story_gate, args=("X",), key="st_x")
+                    col2.button("Apply Y", on_click=add_story_gate, args=("Y",), key="st_y")
+                    col3.button("Apply Z", on_click=add_story_gate, args=("Z",), key="st_z")
+                    col4.button("Apply H", on_click=add_story_gate, args=("H",), key="st_h")
+                    col5.button("🗑️ Clear", on_click=clear_story_circuit, key="st_clear")
+                    
+                    # 2. Build and Draw the Circuit
+                    st_qc = QuantumCircuit(1) # We only need 1 qubit for this BB84 step
+                    for gate in st.session_state.story_circuit_logic:
+                        if gate == "X": st_qc.x(0)
+                        elif gate == "Y": st_qc.y(0)
+                        elif gate == "Z": st_qc.z(0)
+                        elif gate == "H": st_qc.h(0)
+                        
+                    fig = st_qc.draw(output='mpl', scale=0.8)
+                    st.pyplot(fig, use_container_width=False)
+                    
+                    # 3. The Check Answer Button
+                    if st.button("📡 Transmit Qubit to Bob", type="primary", use_container_width=True):
+                        current_sv = Statevector(st_qc)
+                        
+                        if current_sv.equiv(scene_data["target_state"]):
+                            st.session_state.story_circuit_logic = [] # Wipe memory
+                            change_scene(scene_data["success_scene"])
+                            st.rerun()
+                        else:
+                            st.session_state.story_circuit_logic = [] # Wipe memory
+                            change_scene(scene_data["fail_scene"])
+                            st.rerun()
 
+                # ==========================================
+                # 📖 SCENARIO B: IT'S A STANDARD NOVEL SCENE
+                # ==========================================
+                else:
+                    st.write("**> AWAITING INPUT:**")
+                    cols = st.columns(len(scene_data['choices']))
+                    
+                    for idx, choice in enumerate(scene_data['choices']):
+                        with cols[idx]:
+                            st.button(
+                                choice['label'], 
+                                key=f"{selected_chap}_{st.session_state.current_scene}_{idx}", 
+                                on_click=change_scene, 
+                                args=(choice['next_scene'],),
+                                use_container_width=True
+                            )
         
