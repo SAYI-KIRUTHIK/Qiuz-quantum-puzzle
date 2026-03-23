@@ -1019,7 +1019,19 @@ else:
             st.session_state.sb_qubits = st.slider("Select Number of Qubits", min_value=1, max_value=5, value=st.session_state.sb_qubits)
             if st.button("🗑️ Clear Circuit", on_click=clear_sandbox):
                 pass
+            st.write("### Toolbox")
+            st.write("Click a gate, then select which qubit to apply it to.")
 
+            # Example: Adding an X Gate to Qubit 0
+            # In a real app, you might want a drop-down to select the target qubit first, 
+            # then click the gate button.
+            target_q = st.selectbox("Target Qubit:", range(st.session_state.sb_qubits))
+
+            c1, c2, c3, c4 = st.columns(4)
+            c1.button("Apply X Gate", on_click=add_gate, args=("X", target_q))
+            c2.button("Apply Y Gate", on_click=add_gate, args=("Y", target_q))
+            c3.button("Apply Z Gate", on_click=add_gate, args=("Z", target_q))
+            c4.button("Apply H Gate", on_click=add_gate, args=("H", target_q))
         with col_save:
             # --- SAVE SYSTEM ---
             # Package our current circuit into a JSON string
@@ -1104,19 +1116,7 @@ else:
         # ==========================================
         # 5. THE GATE TOOLBOX (Buttons)
         # ==========================================
-        st.write("### Toolbox")
-        st.write("Click a gate, then select which qubit to apply it to.")
 
-        # Example: Adding an X Gate to Qubit 0
-        # In a real app, you might want a drop-down to select the target qubit first, 
-        # then click the gate button.
-        target_q = st.selectbox("Target Qubit:", range(st.session_state.sb_qubits))
-
-        c1, c2, c3, c4 = st.columns(4)
-        c1.button("Apply X Gate", on_click=add_gate, args=("X", target_q))
-        c2.button("Apply Y Gate", on_click=add_gate, args=("Y", target_q))
-        c3.button("Apply Z Gate", on_click=add_gate, args=("Z", target_q))
-        c4.button("Apply H Gate", on_click=add_gate, args=("H", target_q))
 
 
         
