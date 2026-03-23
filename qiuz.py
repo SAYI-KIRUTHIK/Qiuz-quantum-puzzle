@@ -1076,45 +1076,42 @@ else:
             fig = qc.draw(output='mpl', scale=0.8)
             st.pyplot(fig, use_container_width=False)
         # ... (your existing circuit drawing code) ...   
-        st.divider()
+            st.divider()
 
         # ==========================================
         # 6. QUANTUM VISUALIZERS
         # ==========================================
-        st.write("### 🔬 Quantum Visualizer Dashboard")
-        
-        try:
-            # Calculate the mathematical state of the circuit
-            sv = Statevector(qc)
-            
-            # Create three neat tabs
-            tab_probs, tab_bloch, tab_math = st.tabs(["📊 Probabilities", "🌐 Bloch Spheres", "🧮 Math (Dirac)"])
-            
-            with tab_probs:
-                st.write("If we measured this circuit 1,000 times, here is what we would get:")
-                # Qiskit automatically calculates the % chance of measuring 00, 01, 10, or 11
-                fig_hist = plot_histogram(sv.probabilities_dict(),scale=0.8)
-                st.pyplot(fig_hist, use_container_width=False)
-                
-            with tab_bloch:
-                st.write("The physical state of each individual qubit:")
-                # Draws a 3D sphere for every single qubit in your sandbox
-                fig_bloch = plot_bloch_multivector(sv, scale=0.8)
-                st.pyplot(fig_bloch, use_container_width=False)
-                
-            with tab_math:
-                st.write("The exact Statevector in Dirac notation:")
-                # Grabs the raw LaTeX math formula and renders it beautifully
-                math_string = sv.draw(output='latex_source')
-                st.latex(math_string)
-                
-        except Exception as e:
-            # If the user does something weird (like measuring too early), don't crash the app!
-            st.warning("⚠️ Cannot visualize current state. (Did you break the entanglement?)")
-        # ==========================================
-        # 5. THE GATE TOOLBOX (Buttons)
-        # ==========================================
-
+            if st.button("🔬 Calculate Output State", type="primary", use_container_width=True):
+                    
+                    try:
+                        # 1. Do the heavy math
+                        sv = Statevector(qc)
+                        
+                        # 2. Show the Dirac Math explicitly
+                        st.write("### 🧮 Final Quantum State (Dirac Notation)")
+                        st.info("This is the exact mathematical state of your current circuit:")
+                        
+                        # Grab the raw LaTeX from Qiskit and render it beautifully in Streamlit
+                        math_string = sv.draw(output='latex_source')
+                        st.latex(math_string)
+                        
+                        # 3. Build the Visualizer Dashboard
+                        st.write("### 🔭 Visualizations")
+                        tab_probs, tab_bloch = st.tabs(["📊 Probabilities", "🌐 Bloch Spheres"])
+                        
+                        with tab_probs:
+                            st.write("If we measured this circuit 1,000 times, here is the % chance of each result:")
+                            fig_hist = plot_histogram(sv.probabilities_dict())
+                            st.pyplot(fig_hist, use_container_width=False)
+                            
+                        with tab_bloch:
+                            st.write("The physical state of each individual qubit represented in 3D space:")
+                            fig_bloch = plot_bloch_multivector(sv)
+                            st.pyplot(fig_bloch, use_container_width=False)
+                            
+                    except Exception as e:
+                        # If the circuit gets too complex or has incompatible operations, catch the error!
+                        st.error("⚠️ Cannot calculate current state. Make sure you haven't added classical measurements before this step!")
 
 
         
