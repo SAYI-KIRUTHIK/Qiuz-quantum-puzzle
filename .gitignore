@@ -1,1 +1,7 @@
+# Streamlit secrets (NEVER UPLOAD THESE)
+.streamlit/secrets.toml
+
+# Python Cache files
+__pycache__/
+*.pyc
 
