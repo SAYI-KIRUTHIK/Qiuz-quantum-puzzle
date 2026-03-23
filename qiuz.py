@@ -1035,7 +1035,18 @@ else:
                                 if stars == 3:
                                     st.balloons() # Triggers full-screen balloons for a perfect run!
                                 else:
-                                    st.snow() # Triggers falling snow for a normal clear!
+                                    # Create a temporary container for our cat animation
+                                    animation_box = st.empty()
+                                    
+                                    # Show a Cat-in-a-Box GIF (You can swap this URL for any GIF you want!)
+                                    cat_gif_url = "https://media.giphy.com/media/VbnUQpnihPSIgIXuZv/giphy.gif"
+                                    animation_box.image(cat_gif_url)
+                                    
+                                    # Pause the app for 2.5 seconds to let the player watch the GIF
+                                    time.sleep(2.5) 
+                                    
+                                    # Poof! Destroy the container so the GIF disappears
+                                    animation_box.empty()
 
                             # 5. PAYOUT THE COINS
                             if is_new_clear:
