@@ -1,15 +1,15 @@
 [theme]
-# The main accent color (used for the 'Primary' buttons and loading bars)
-primaryColor = "#bbf3e0" 
+# The main accent color (Soft Neon Genesis Pink/Red)
+primaryColor = "#FF6B8B"
 
-# The main background color of the app (Deep space dark blue/grey)
-backgroundColor = "#d8d3c4"
+# The main background (Deep, dark desaturated plum/magenta)
+backgroundColor = "#1A1016"
 
-# The background of the sidebar and input boxes (Slightly lighter)
-secondaryBackgroundColor = "#eee8d5"
+# The sidebar and input boxes (Slightly lighter dark pink-grey)
+secondaryBackgroundColor = "#2A1821"
 
-# The color of the text
-textColor = "#FFFFFF"
+# The text color (A very soft, readable blush-white)
+textColor = "#FFE8EE"
 
-# The font style (Options: "sans serif", "serif", or "monospace")
+# The font style
 font = "serif"
