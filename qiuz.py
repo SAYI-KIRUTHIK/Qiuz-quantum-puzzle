@@ -89,10 +89,7 @@ else:
     st.sidebar.title("Game Status")
     st.sidebar.success(f"👤 Playing as: {st.session_state.username}")    
     # The Log Out Button
-    if st.sidebar.button("Save & Log Out"):
-        # Save their current coins to the database before they leave
-        supabase.table("profiles").update({"coins": st.session_state.coins}).eq("username", st.session_state.username).execute()
-    
+
     st.sidebar.metric(label="Catty-Coins", value=f"{st.session_state.coins} 🐈‍⬛")
 
     TOTAL_CHALLENGES = 11 
@@ -104,11 +101,16 @@ else:
         progress_pct, 
         text=f"🏆 Campaign Progress: {cleared_count} / {TOTAL_CHALLENGES}"
     )
-    st.sidebar.divider()        
+    if st.sidebar.button("Save & Log Out"):
+        # Save their current coins to the database before they leave
+        supabase.table("profiles").update({"coins": st.session_state.coins}).eq("username", st.session_state.username).execute()
+        
         # Wipe the session state so the next person doesn't see their game
         for key in list(st.session_state.keys()):
             del st.session_state[key]
-        st.rerun()
+    st.rerun()    
+    st.sidebar.divider()
+
 
     # --- YOUR ENTIRE GAME CODE GOES HERE ---
     history_idx = 0
