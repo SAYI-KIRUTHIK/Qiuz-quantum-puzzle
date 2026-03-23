@@ -1093,13 +1093,13 @@ else:
             with tab_probs:
                 st.write("If we measured this circuit 1,000 times, here is what we would get:")
                 # Qiskit automatically calculates the % chance of measuring 00, 01, 10, or 11
-                fig_hist = plot_histogram(sv.probabilities_dict())
+                fig_hist = plot_histogram(sv.probabilities_dict(),scale=0.8)
                 st.pyplot(fig_hist, use_container_width=False)
                 
             with tab_bloch:
                 st.write("The physical state of each individual qubit:")
                 # Draws a 3D sphere for every single qubit in your sandbox
-                fig_bloch = plot_bloch_multivector(sv)
+                fig_bloch = plot_bloch_multivector(sv, scale=0.8)
                 st.pyplot(fig_bloch, use_container_width=False)
                 
             with tab_math:
