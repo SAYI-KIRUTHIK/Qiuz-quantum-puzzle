@@ -1064,8 +1064,7 @@ else:
             c_m1.button("Apply CNOT (CX)", on_click=add_gate, args=("CX", target_q, ctrl_1))
             c_m2.button("Apply Toffoli (CCX)", on_click=add_gate, args=("CCX", target_q, ctrl_1, ctrl_2))
         with col_save:
-            # --- SAVE SYSTEM ---
-            # Package our current circuit into a JSON string
+            # --- 1. MAP SAVE SYSTEM ---
             map_data = json.dumps({
                 "qubits": st.session_state.sb_qubits,
                 "logic": st.session_state.sb_circuit_logic
@@ -1078,21 +1077,52 @@ else:
                 use_container_width=True
             )
             
-            # --- LOAD SYSTEM ---
+            # --- 2. MAP LOAD SYSTEM ---
             uploaded_file = st.file_uploader("📂 Import Map (Load)", type="json")
             if uploaded_file is not None:
-                # We use a button to confirm the load so it doesn't happen accidentally
                 st.button("Confirm Load", on_click=load_map, args=(uploaded_file,))
-            buf = io.BytesIO()
-            st.download_button(
-                label="🖼️ Download Circuit as PNG",
-                data=buf.getvalue(),
-                file_name="my_quantum_circuit.png",
-                mime="image/png"
-            )
-            st.divider()
-
-        st.divider()
+                
+            st.divider() # A clean visual line
+            
+            # --- 3. DOWNLOAD RESULT SYSTEM ---
+            # We do a lightning-fast background calculation to get the latest data
+            temp_qc = QuantumCircuit(st.session_state.sb_qubits, st.session_state.sb_qubits)
+            has_m = False
+            
+            # Rebuild the logic quickly
+            for inst in st.session_state.sb_circuit_logic:
+                g, t = inst["gate"], inst["target"]
+                c1, c2 = inst.get("control1"), inst.get("control2")
+                if g == "X": temp_qc.x(t)
+                elif g == "Y": temp_qc.y(t)
+                elif g == "Z": temp_qc.z(t)
+                elif g == "H": temp_qc.h(t)
+                elif g == "M": 
+                    temp_qc.measure(t, t)
+                    has_m = True
+                elif g == "CX" and c1 is not None: temp_qc.cx(c1, t)
+                elif g == "CCX" and c1 is not None and c2 is not None: temp_qc.ccx(c1, c2, t)
+                
+            try:
+                # Package the math based on whether they measured it or not!
+                if has_m:
+                    sim = AerSimulator()
+                    counts = sim.run(temp_qc, shots=1024).result().get_counts()
+                    result_text = json.dumps({"circuit_state": "Collapsed (Measured)", "simulation_counts": counts}, indent=2)
+                else:
+                    sv = Statevector(temp_qc)
+                    result_text = json.dumps({"circuit_state": "Superposition (Pure Math)", "probabilities": sv.probabilities_dict()}, indent=2)
+                    
+                st.download_button(
+                    label="📊 Download Result Data",
+                    data=result_text,
+                    file_name="quantum_math_results.json",
+                    mime="application/json",
+                    use_container_width=True
+                )
+            except Exception:
+                # If the circuit is empty or broken, don't show the download button
+                pass
 
         # ==========================================
         # 4. BUILD AND DRAW THE CIRCUIT
@@ -1136,6 +1166,12 @@ else:
             fig.savefig(buf, format="png", bbox_inches="tight", transparent=False, facecolor="#F8F6F0")
             
             # 3. Create the download button
+            st.download_button(
+                label="🖼️ Download Circuit as PNG",
+                data=buf.getvalue(),
+                file_name="my_quantum_circuit.png",
+                mime="image/png"
+            )
             st.divider()
 
 
