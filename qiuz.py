@@ -1441,7 +1441,7 @@ else:
                     },
                     "eve_intercepts": {
                         "icon": "🦹‍♀️",
-                        "text": "You successfully transmit the $|+\\rangle$ state. But midway through the fiber optic cable, **Eve intercepts it!**\n\nEve doesn't know you used the Diagonal basis. She guesses and measures your qubit in the Standard (Z) basis. Because your qubit was in superposition, her measurement forces it to randomly collapse into a $|0\rangle$ or $|1\rangle$.\n\nShe then forwards this corrupted qubit to Bob.",
+                        "text": "You successfully transmit the $|+ \\rangle$ state. But midway through the fiber optic cable, **Eve intercepts it!**\n\nEve doesn't know you used the Diagonal basis. She guesses and measures your qubit in the Standard (Z) basis. Because your qubit was in superposition, her measurement forces it to randomly collapse into a $|0\\rangle$ or $|1\\rangle$.\n\nShe then forwards this corrupted qubit to Bob.",
                         "choices": [{"label": "Wait for Bob's Call...", "next_scene": "bob_receives"}]
                     },
                     "bob_receives": {
@@ -1492,9 +1492,27 @@ else:
         # --- 2. FAST CALLBACK TO CHANGE SCENES ---
         def change_scene(next_scene_name):
             st.session_state.current_scene = next_scene_name
-
-        # --- 3. THE CHAPTER SELECTOR ---
-        all_chapters = list(story_script.keys())
+            
+            # 🌟 NEW: THE PROGRESSION SYSTEM 🌟
+            # Look at the data for the scene we are about to enter...
+            new_scene_data = story_script[st.session_state.active_chapter][next_scene_name]
+            
+            # If this scene is a victory screen, unlock the next chapter!
+            if new_scene_data.get("chapter_clear"):
+                # Get a list of all chapters in order
+                all_chaps = list(story_script.keys())
+                current_idx = all_chaps.index(st.session_state.active_chapter)
+                
+                # If there is another chapter after this one...
+                if current_idx + 1 < len(all_chaps):
+                    next_chap = all_chaps[current_idx + 1]
+                    
+                    # Unlock it and pay the player!
+                    if next_chap not in st.session_state.unlocked_chapters:
+                        st.session_state.unlocked_chapters.append(next_chap)
+                        st.session_state.coins += 50 # Big payout for beating a story chapter!
+                        st.toast(f"🔓 Unlocked: {next_chap}!", icon="✨")
+                        st.toast("💰 Earned 50 Catty-Coins for clearing the chapter!", icon="🐈‍⬛")
         
         # Create a nice layout for the top menu
         col_nav, _ = st.columns([2, 1])
