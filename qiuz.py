@@ -1395,7 +1395,7 @@ else:
     # ==========================================
     # 🕵️‍♀️ THE STORY ENGINE (ALICE & BOB)
     # ==========================================
-    elif current_page == "🕵️‍♀️ Story Mode: Alice & Bob":
+    elif current_page == "🕵️‍♀️ Story Mode":
         st.header("🕵️‍♀️ Alice & Bob: Quantum Espionage")
         
         # --- 1. THE SCRIPT (The Dictionary) ---
