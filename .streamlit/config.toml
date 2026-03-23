@@ -6,7 +6,7 @@ primaryColor = "#FF6B8B"
 backgroundColor = "#3a2230"
 
 # The sidebar and input boxes (Slightly lighter dark pink-grey)
-secondaryBackgroundColor = "#470d2f"
+secondaryBackgroundColor = "#470d2fc4"
 
 # The text color (A very soft, readable blush-white)
 textColor = "#FFE8EE"
