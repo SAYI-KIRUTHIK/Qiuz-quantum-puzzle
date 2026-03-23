@@ -985,29 +985,31 @@ else:
             # ==========================================
             # 2. FAST CALLBACK FUNCTIONS
             # ==========================================
-            def add_gate(gate, target, control=None):
-                """Quickly adds a gate to the memory without double-loading."""
-                if control is None:
-                    st.session_state.sb_circuit_logic.append({"gate": gate, "target": target})
-                else:
-                    st.session_state.sb_circuit_logic.append({"gate": gate, "target": target, "control": control})
 
-            def clear_sandbox():
-                st.session_state.sb_circuit_logic = []
-
-            def load_map(uploaded_json):
-                """Reads a file and overwrites the sandbox memory."""
-                if uploaded_json is not None:
-                    data = json.load(uploaded_json)
-                    st.session_state.sb_qubits = data["qubits"]
-                    st.session_state.sb_circuit_logic = data["logic"]
 
 # ==========================================
 # 3. THE SANDBOX UI
 # ==========================================
     if current_page == "🧘‍♀️ Sandbox Mode":
         st.header("🧘‍♀️ Sandbox Mode: Free Play")
+        def add_gate(gate, target, control=None):
+            """Quickly adds a gate to the memory without double-loading."""
+            if control is None:
+                st.session_state.sb_circuit_logic.append({"gate": gate, "target": target})
+            else:
+                st.session_state.sb_circuit_logic.append({"gate": gate, "target": target, "control": control})
 
+        def clear_sandbox():
+            st.session_state.sb_circuit_logic = []
+
+        def load_map(uploaded_json):
+            """Reads a file and overwrites the sandbox memory."""
+            if uploaded_json is not None:
+                data = json.load(uploaded_json)
+                st.session_state.sb_qubits = data["qubits"]
+                st.session_state.sb_circuit_logic = data["logic"]
+        def clear_sandbox():
+            st.session_state.sb_circuit_logic = []
         # Top Control Panel
         col_controls, col_save = st.columns([2, 1])
 
