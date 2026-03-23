@@ -1751,7 +1751,7 @@ else:
             - 🧩 **Story Mode** New levels.
             - 🎵 **Sound Design:** Adding subtle UI clicks and success sounds.
             - 🏆 **Leaderboards:** See who can beat the challenges in the fewest moves!
-            - 🤖 **AI Opponent:** A simple Eve bot that tries to guess your circuit.")
+            - 🤖 **AI Opponent:** A simple Eve bot that tries to guess your circuit.""")
             
         st.divider()
         
