@@ -977,35 +977,35 @@ else:
 # ==========================================
 # 1. INITIALIZE SANDBOX MEMORY
 #  ==========================================
+if "sb_qubits" not in st.session_state:
+    st.session_state.sb_qubits = 3 # Default to 3 qubits
+if "sb_circuit_logic" not in st.session_state:
+    st.session_state.sb_circuit_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
+
+# ==========================================
+# 2. FAST CALLBACK FUNCTIONS
+# ==========================================
+def add_gate(gate, target, control=None):
+    """Quickly adds a gate to the memory without double-loading."""
+    if control is None:
+        st.session_state.sb_circuit_logic.append({"gate": gate, "target": target})
+    else:
+        st.session_state.sb_circuit_logic.append({"gate": gate, "target": target, "control": control})
+
+def clear_sandbox():
+    st.session_state.sb_circuit_logic = []
+
+def load_map(uploaded_json):
+    """Reads a file and overwrites the sandbox memory."""
+    if uploaded_json is not None:
+        data = json.load(uploaded_json)
+        st.session_state.sb_qubits = data["qubits"]
+        st.session_state.sb_circuit_logic = data["logic"]
+
+# ==========================================
+# 3. THE SANDBOX UI
+# ==========================================
 if current_page == "🧘‍♀️ Sandbox Mode: Free Play":
-    if "sb_qubits" not in st.session_state:
-        st.session_state.sb_qubits = 3 # Default to 3 qubits
-    if "sb_circuit_logic" not in st.session_state:
-        st.session_state.sb_circuit_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
-
-    # ==========================================
-    # 2. FAST CALLBACK FUNCTIONS
-    # ==========================================
-    def add_gate(gate, target, control=None):
-        """Quickly adds a gate to the memory without double-loading."""
-        if control is None:
-            st.session_state.sb_circuit_logic.append({"gate": gate, "target": target})
-        else:
-            st.session_state.sb_circuit_logic.append({"gate": gate, "target": target, "control": control})
-
-    def clear_sandbox():
-        st.session_state.sb_circuit_logic = []
-
-    def load_map(uploaded_json):
-        """Reads a file and overwrites the sandbox memory."""
-        if uploaded_json is not None:
-            data = json.load(uploaded_json)
-            st.session_state.sb_qubits = data["qubits"]
-            st.session_state.sb_circuit_logic = data["logic"]
-
-    # ==========================================
-    # 3. THE SANDBOX UI
-    # ==========================================
     st.header("🧘‍♀️ Sandbox Mode: Free Play")
 
     # Top Control Panel
