@@ -1102,7 +1102,7 @@ else:
                         
                         with tab_probs:
                             st.write("If we measured this circuit 1,000 times, here is the % chance of each result:")
-                            fig_hist = plot_histogram(sv.probabilities_dict())
+                            fig_hist = plot_histogram(sv.probabilities_dict(),scale=0.5)
                             st.pyplot(fig_hist, use_container_width=False)
                             
                         with tab_bloch:
