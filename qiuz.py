@@ -351,8 +351,8 @@ else:
     #               PAGE 2: THE SHOP
     # ==========================================
     if current_page == "🏪 Quantum Shop":
-        st.header("🏪 The Quantum Library & Shop")
-        st.write("Spend your hard-earned Catty-Coins to unlock advanced quantum physics concepts and textbook definitions.")
+        st.header("🏪 The Quantum Shop")
+        st.write("Every loves lore, here take some good ones in  exchange of catty-coins 🐈‍⬛")
         
         # --- 1. THE LORE DATABASE ---
         lore_db = {
@@ -390,7 +390,7 @@ else:
         st.divider()
         
         # --- 3. THE UI: SHOP vs LIBRARY ---
-        tab_shop, tab_library = st.tabs(["🛒 The Shop", "📖 My Unlocked Library"])
+        tab_shop, tab_library = st.tabs(["🛒", "📖 Library"])
         
         # THE SHOP TAB
         with tab_shop:
@@ -419,7 +419,7 @@ else:
 
         # THE LIBRARY TAB
         with tab_library:
-            st.write("### Your Textbook Excerpts")
+            st.write("### From the GREATS!")
             if len(st.session_state.unlocked_lore) == 0:
                 st.info("Your library is empty! Go beat some challenges to earn coins and buy textbook pages.")
             else:
