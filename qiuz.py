@@ -108,7 +108,7 @@ else:
         # Wipe the session state so the next person doesn't see their game
         for key in list(st.session_state.keys()):
             del st.session_state[key]
-    st.rerun()    
+        st.rerun()    
     st.sidebar.divider()
 
 
