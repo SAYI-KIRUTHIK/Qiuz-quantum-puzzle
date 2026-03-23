@@ -976,108 +976,108 @@ else:
 
 # ==========================================
 # 1. INITIALIZE SANDBOX MEMORY
-#  ==========================================
-if "sb_qubits" not in st.session_state:
-    st.session_state.sb_qubits = 3 # Default to 3 qubits
-if "sb_circuit_logic" not in st.session_state:
-    st.session_state.sb_circuit_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
+    if current_page == "🧘‍♀️ Sandbox Mode: Free Play":
+            if "sb_qubits" not in st.session_state:
+                st.session_state.sb_qubits = 3 # Default to 3 qubits
+            if "sb_circuit_logic" not in st.session_state:
+                st.session_state.sb_circuit_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
 
-# ==========================================
-# 2. FAST CALLBACK FUNCTIONS
-# ==========================================
-def add_gate(gate, target, control=None):
-    """Quickly adds a gate to the memory without double-loading."""
-    if control is None:
-        st.session_state.sb_circuit_logic.append({"gate": gate, "target": target})
-    else:
-        st.session_state.sb_circuit_logic.append({"gate": gate, "target": target, "control": control})
+            # ==========================================
+            # 2. FAST CALLBACK FUNCTIONS
+            # ==========================================
+            def add_gate(gate, target, control=None):
+                """Quickly adds a gate to the memory without double-loading."""
+                if control is None:
+                    st.session_state.sb_circuit_logic.append({"gate": gate, "target": target})
+                else:
+                    st.session_state.sb_circuit_logic.append({"gate": gate, "target": target, "control": control})
 
-def clear_sandbox():
-    st.session_state.sb_circuit_logic = []
+            def clear_sandbox():
+                st.session_state.sb_circuit_logic = []
 
-def load_map(uploaded_json):
-    """Reads a file and overwrites the sandbox memory."""
-    if uploaded_json is not None:
-        data = json.load(uploaded_json)
-        st.session_state.sb_qubits = data["qubits"]
-        st.session_state.sb_circuit_logic = data["logic"]
+            def load_map(uploaded_json):
+                """Reads a file and overwrites the sandbox memory."""
+                if uploaded_json is not None:
+                    data = json.load(uploaded_json)
+                    st.session_state.sb_qubits = data["qubits"]
+                    st.session_state.sb_circuit_logic = data["logic"]
 
 # ==========================================
 # 3. THE SANDBOX UI
 # ==========================================
-    if current_page == "🧘‍♀️ Sandbox Mode: Free Play":
-        st.header("🧘‍♀️ Sandbox Mode: Free Play")
+    
+            st.header("🧘‍♀️ Sandbox Mode: Free Play")
 
-        # Top Control Panel
-        col_controls, col_save = st.columns([2, 1])
+            # Top Control Panel
+            col_controls, col_save = st.columns([2, 1])
 
-        with col_controls:
-            # Qubit Selector
-            st.session_state.sb_qubits = st.slider("Select Number of Qubits", min_value=1, max_value=5, value=st.session_state.sb_qubits)
-            if st.button("🗑️ Clear Circuit", on_click=clear_sandbox):
-                pass
+            with col_controls:
+                # Qubit Selector
+                st.session_state.sb_qubits = st.slider("Select Number of Qubits", min_value=1, max_value=5, value=st.session_state.sb_qubits)
+                if st.button("🗑️ Clear Circuit", on_click=clear_sandbox):
+                    pass
 
-        with col_save:
-            # --- SAVE SYSTEM ---
-            # Package our current circuit into a JSON string
-            map_data = json.dumps({
-                "qubits": st.session_state.sb_qubits,
-                "logic": st.session_state.sb_circuit_logic
-            })
-            st.download_button(
-                label="💾 Export Map (Save)",
-                data=map_data,
-                file_name="my_quantum_map.json",
-                mime="application/json",
-                use_container_width=True
-            )
-            
-            # --- LOAD SYSTEM ---
-            uploaded_file = st.file_uploader("📂 Import Map (Load)", type="json")
-            if uploaded_file is not None:
-                # We use a button to confirm the load so it doesn't happen accidentally
-                st.button("Confirm Load", on_click=load_map, args=(uploaded_file,))
+            with col_save:
+                # --- SAVE SYSTEM ---
+                # Package our current circuit into a JSON string
+                map_data = json.dumps({
+                    "qubits": st.session_state.sb_qubits,
+                    "logic": st.session_state.sb_circuit_logic
+                })
+                st.download_button(
+                    label="💾 Export Map (Save)",
+                    data=map_data,
+                    file_name="my_quantum_map.json",
+                    mime="application/json",
+                    use_container_width=True
+                )
+                
+                # --- LOAD SYSTEM ---
+                uploaded_file = st.file_uploader("📂 Import Map (Load)", type="json")
+                if uploaded_file is not None:
+                    # We use a button to confirm the load so it doesn't happen accidentally
+                    st.button("Confirm Load", on_click=load_map, args=(uploaded_file,))
 
-        st.divider()
+            st.divider()
 
-        # ==========================================
-        # 4. BUILD AND DRAW THE CIRCUIT
-        # ==========================================
-        # We rebuild the Qiskit circuit fresh every time based on the saved logic
-        qc = QuantumCircuit(st.session_state.sb_qubits)
+            # ==========================================
+            # 4. BUILD AND DRAW THE CIRCUIT
+            # ==========================================
+            # We rebuild the Qiskit circuit fresh every time based on the saved logic
+            qc = QuantumCircuit(st.session_state.sb_qubits)
 
-        for instruction in st.session_state.sb_circuit_logic:
-            g = instruction["gate"]
-            t = instruction["target"]
-            c = instruction.get("control", None)
-            
-            # Apply the gates to the Qiskit object
-            if g == "X": qc.x(t)
-            elif g == "Y": qc.y(t)
-            elif g == "Z": qc.z(t)
-            elif g == "H": qc.h(t)
-            elif g == "CX" and c is not None: qc.cx(c, t)
+            for instruction in st.session_state.sb_circuit_logic:
+                g = instruction["gate"]
+                t = instruction["target"]
+                c = instruction.get("control", None)
+                
+                # Apply the gates to the Qiskit object
+                if g == "X": qc.x(t)
+                elif g == "Y": qc.y(t)
+                elif g == "Z": qc.z(t)
+                elif g == "H": qc.h(t)
+                elif g == "CX" and c is not None: qc.cx(c, t)
 
-        # Draw it! (Assuming you are using matplotlib for visuals)
-        fig = qc.draw(output='mpl')
-        st.pyplot(fig)
+            # Draw it! (Assuming you are using matplotlib for visuals)
+            fig = qc.draw(output='mpl')
+            st.pyplot(fig)
 
-        # ==========================================
-        # 5. THE GATE TOOLBOX (Buttons)
-        # ==========================================
-        st.write("### Toolbox")
-        st.write("Click a gate, then select which qubit to apply it to.")
+            # ==========================================
+            # 5. THE GATE TOOLBOX (Buttons)
+            # ==========================================
+            st.write("### Toolbox")
+            st.write("Click a gate, then select which qubit to apply it to.")
 
-        # Example: Adding an X Gate to Qubit 0
-        # In a real app, you might want a drop-down to select the target qubit first, 
-        # then click the gate button.
-        target_q = st.selectbox("Target Qubit:", range(st.session_state.sb_qubits))
+            # Example: Adding an X Gate to Qubit 0
+            # In a real app, you might want a drop-down to select the target qubit first, 
+            # then click the gate button.
+            target_q = st.selectbox("Target Qubit:", range(st.session_state.sb_qubits))
 
-        c1, c2, c3, c4 = st.columns(4)
-        c1.button("Apply X Gate", on_click=add_gate, args=("X", target_q))
-        c2.button("Apply Y Gate", on_click=add_gate, args=("Y", target_q))
-        c3.button("Apply Z Gate", on_click=add_gate, args=("Z", target_q))
-        c4.button("Apply H Gate", on_click=add_gate, args=("H", target_q))
+            c1, c2, c3, c4 = st.columns(4)
+            c1.button("Apply X Gate", on_click=add_gate, args=("X", target_q))
+            c2.button("Apply Y Gate", on_click=add_gate, args=("Y", target_q))
+            c3.button("Apply Z Gate", on_click=add_gate, args=("Z", target_q))
+            c4.button("Apply H Gate", on_click=add_gate, args=("H", target_q))
 
 
         
