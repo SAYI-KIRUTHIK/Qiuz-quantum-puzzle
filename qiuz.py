@@ -261,118 +261,85 @@ else:
         st.info(level_data["goal_text"])
         st.write("### Apply Your Gates:")
 
+        col_main,col_gates = st.columns([3,2])
+        with col_gates:        # --- THE CIRCUIT VISUALIZER ---
+                with st.container(border=True):
 
-        if num_qubits == 1:
-            with st.expander("Gates"):
-                col1, col2, col3, col4, = st.columns(4)
-                with col1:
-                    if st.button("Apply X Gate"): qc.x(0)
-                with col2:
-                    if st.button("Apply Y Gate"): qc.y(0)
-                with col3:
-                    if st.button("Apply Z Gate"): qc.z(0)
-                with col4:
-                    if st.button("Apply H Gate"): qc.h(0)
-                #with col5:
-                #   if st.button("Apply CCNot Gate"): qc.ccx(0, 1, 2) # This will do nothing since we only have 1 qubit, but it's fun to try!
-
-        elif num_qubits == 2:
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                with st.expander("Qubit(0) Controls"):
-                    if st.button("X Gate on q0"): qc.x(0)
-                    if st.button("Y Gate on q0"): qc.y(0)
-                    if st.button("Z Gate on q0"): qc.z(0)
-                    if st.button("H Gate on q0"): qc.h (0)
-            with col2:
-                with st.expander("Qubit(1) Controls"):
-                    if st.button("X Gate on q1"): qc.x(1)
-                    if st.button("Y Gate on q1"): qc.y(1)
-                    if st.button("Z Gate on q1"): qc.z(1)
-                    if st.button("H Gate on q1"): qc.h (1)
-            with col3:
-                with st.expander("Multi-Qubit Controls"):
-                    if st.button("CNOT (Control: q0, Target: q1)"): qc.cx(0, 1)
-                    if st.button("CNOT (Control: q1, Target: q0)"): qc.cx(1, 0)
-
-        elif num_qubits == 3:
-            col1, col2, col3, col4, col5 = st.columns(5)
-            with col1:
-                with st.expander("Qubit(0) Controls"):
-                    if st.button("X (q0)"): qc.x(0)
-                    if st.button("Y (q0)"): qc.y(0)
-                    if st.button("Z (q0)"): qc.z(0)
-                    if st.button("H (q0)"): qc.h(0)
-            with col2:
-                with st.expander("Qubit(1) Controls"):
-                    if st.button("X (q1)"): qc.x(1)
-                    if st.button("Y (q1)"): qc.y(1)
-                    if st.button("Z (q1)"): qc.z(1)
-                    if st.button("H (q1)"): qc.h(1)
-            with col3:
-                with st.expander("Qubit(2) Controls"):
-                    if st.button("X (q2)"): qc.x(2)
-                    if st.button("Y (q2)"): qc.y(2)
-                    if st.button("Z (q2)"): qc.z(2)
-                    if st.button("H (q2)"): qc.h(2)
-            with col4:
-                with st.expander("Two-Qubit Gates"):
-                    if st.button("CNOT (Ctrl: q0, Targ: q1)"): qc.cx(0, 1)
-                    if st.button("CNOT (Ctrl: q1, Targ: q0)"): qc.cx(1, 0)
-                    if st.button("CNOT (Ctrl: q0, Targ: q2)"): qc.cx(0, 2)
-                    if st.button("CNOT (Ctrl: q2, Targ: q0)"): qc.cx(2, 0)
-                    if st.button("CNOT (Ctrl: q1, Targ: q2)"): qc.cx(1, 2)
-                    if st.button("CNOT (Ctrl: q2, Targ: q1)"): qc.cx(2, 1)
-            with col5:
-                with st.expander("Three-Qubit Gates"):
-                    if st.button("Toffoli (Ctrl: q0 & q1, Targ: q2)"): qc.ccx(0, 1, 2)
-                    if st.button("Toffoli (Ctrl: q0 & q2, Targ: q1)"): qc.ccx(0, 2, 1)
-                    if st.button("Toffoli (Ctrl: q1 & q2, Targ: q0)"): qc.ccx(1, 2, 0)
+                    with st.expander("🛠️ Available Quantum Gates", expanded=True):
+                
+                # This loop automatically builds a row for however many qubits the challenge has!
+                        for i in range(num_q):
+                            st.markdown(f"**Qubit {i}**")
+                    
+                    # Create 4 tiny columns just for the buttons on this specific row
+                            g1, g2, g3, g4 = st.columns(4)
+                    
+                            with g1:
+                                if st.button("X", key=f"x{i}", use_container_width=True): qc.x(i);save_state()
+                            with g2:
+                                if st.button("Y", key=f"y{i}", use_container_width=True): qc.y(i);save_state()
+                            with g3:
+                                if st.button("Z", key=f"z{i}", use_container_width=True): qc.z(i);save_state()
+                            with g4:
+                                if st.button("H", key=f"h{i}", use_container_width=True): qc.h(i);save_state()
+                        
+                            st.divider() # Adds a neat line between qubits
+                    
+                # Multi-Qubit Gates (Placed at the very bottom, taking up the full width)
+                        if num_q > 1:
+                            st.markdown("**Two-Qubit Gates**")
+                            if st.button("CNOT (Ctrl: q0, Targ: q1)", key="cx01", use_container_width=True): qc.cx(0, 1);save_state()
+                            if st.button("CNOT (Ctrl: q1, Targ: q0)", key="cx10", use_container_width=True): qc.cx(1, 0);save_state() 
+                        if num_q > 2:
+                            st.markdown("**Three-Qubit Gates**")
+                            if st.button("Toffoli (Ctrl: q0,q1, Targ: q2)", key="ccx012", use_container_width=True): qc.ccx(0, 1, 2);save_state()   
+                            if st.button("Toffoli (Ctrl: q0,q2, Targ: q1)", key="ccx021", use_container_width=True): qc.ccx(0, 2, 1);save_state()
+                            if st.button("Toffoli (Ctrl: q1,q2, Targ: q0)", key="ccx120", use_container_width=True): qc.ccx(1, 2, 0);save_state()
 
         # Evaluation
         current_state = Statevector(qc)
 
 
+        with col_main:    
+            st.write("### Your Current Circuit:")
+            with st.container():
+                fig = qc.draw(output='mpl', initial_state=True)
+                st.pyplot(fig, use_container_width=False)
 
-        st.write("### Your Current Circuit:")
-        with st.container():
-            fig = qc.draw(output='mpl', initial_state=True)
-            st.pyplot(fig, use_container_width=False)
 
+            col_check,col_reset = st.columns([2,2]) 
 
-        col_check,col_reset = st.columns([2,2]) 
+            with col_check:
+                if st.button("Check Circuit", type="primary", use_container_width=True):
+                    st.session_state.checked = True
+                    st.write("### 🔍 Results")
+                    st.write("**Your Resulting State Vector:**")
+                    st.code(np.round(current_state.data, 3))
 
-        with col_check:
-            if st.button("Check Circuit", type="primary", use_container_width=True):
-                st.session_state.checked = True
-                st.write("### 🔍 Results")
-                st.write("**Your Resulting State Vector:**")
-                st.code(np.round(current_state.data, 3))
-
-        with col_reset:
-            # This button will now sit right next to the Check button
-            if st.button("Reset", use_container_width=True):
-                st.session_state.qc = QuantumCircuit(num_qubits)
-                st.session_state.checked = False
-                st.rerun()
-            
-        if st.session_state.checked:
-            if current_state.equiv(target_state):
-                st.success("🎉 Thanks, I got my state! and you got your catty-coin!")
-                st.balloons()
-                #st.toast(f"💰 You earned {level_reward} Catty-Coins! Check the textbook for your new unlock.")
-            # Fun visual reward
+            with col_reset:
+                # This button will now sit right next to the Check button
+                if st.button("Reset", use_container_width=True):
+                    st.session_state.qc = QuantumCircuit(num_qubits)
+                    st.session_state.checked = False
+                    st.rerun()
                 
-                # Reward Logic: Only give coins if it's their first time beating it
-                if level_name not in st.session_state.cleared_levels:
-                    st.session_state.cleared_levels.add(level_name)
-                    st.session_state.coins += level_reward
-                    st.toast(f"💰 You earned {level_reward} Catty-Coins! Check the textbook for your new unlock.")
-                    st.rerun() # Forces a refresh to instantly update the dropdown and textbook
-                st.session_state.checked = False
-                
-            else:
-                st.error("❌ This is not my target state. Can you try again?")
+            if st.session_state.checked:
+                if current_state.equiv(target_state):
+                    st.success("🎉 Thanks, I got my state! and you got your catty-coin!")
+                    st.balloons()
+                    #st.toast(f"💰 You earned {level_reward} Catty-Coins! Check the textbook for your new unlock.")
+                # Fun visual reward
+                    
+                    # Reward Logic: Only give coins if it's their first time beating it
+                    if level_name not in st.session_state.cleared_levels:
+                        st.session_state.cleared_levels.add(level_name)
+                        st.session_state.coins += level_reward
+                        st.toast(f"💰 You earned {level_reward} Catty-Coins! Check the textbook for your new unlock.")
+                        st.rerun() # Forces a refresh to instantly update the dropdown and textbook
+                    st.session_state.checked = False
+                    
+                else:
+                    st.error("❌ This is not my target state. Can you try again?")
         st.warning("⚠️ Remember, measuring a quantum state collapses it!")
 
 
