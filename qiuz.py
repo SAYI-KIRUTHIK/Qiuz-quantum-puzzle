@@ -1107,7 +1107,7 @@ else:
                             
                         with tab_bloch:
                             st.write("The physical state of each individual qubit represented in 3D space:")
-                            fig_bloch = plot_bloch_multivector(sv, figsize=(10,8))
+                            fig_bloch = plot_bloch_multivector(sv)
                             st.pyplot(fig_bloch, use_container_width=False)
                             
                     except Exception as e:
