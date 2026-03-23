@@ -1020,8 +1020,6 @@ else:
             if st.button("🗑️ Clear Circuit", on_click=clear_sandbox):
                 pass
             st.write("### Toolbox")
-            st.write("Click a gate, then select which qubit to apply it to.")
-
             # Example: Adding an X Gate to Qubit 0
             # In a real app, you might want a drop-down to select the target qubit first, 
             # then click the gate button.
