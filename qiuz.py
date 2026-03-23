@@ -1762,5 +1762,5 @@ else:
         2. **Send an Email:** Reach out to me directly at (sayi.kiruthik@gmail.com).
         3. **Fork the Code:** Want to add your own quantum algorithms? Fork the repo and submit a Pull Request!
         """)
-    st.info("use **DESKTOP** or atleast **DESKTOP MODE** for best experience. Mobile is not optimized yet!")
+    st.warning("use **DESKTOP** or atleast **DESKTOP MODE** for best experience. Mobile is not optimized yet!")
         
