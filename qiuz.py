@@ -34,45 +34,45 @@ st.set_page_config(page_title="Quantum_circuit_Puzzle", page_icon="🧩",layout=
     # 💾 DATABASE FUNCTIONS (Paste them here!)
     # ==========================================
 def save_player_data():
-    """Packages the session state and sends it to the database."""
-        # 1. Gather the current data
-    current_coins = st.session_state.coins
-    levels_list = list(st.session_state.cleared_levels) # Convert Set to List
-    lore_list = st.session_state.unlocked_lore
-    username = st.session_state.username # Or however you track the logged-in user
-        
     try:
-            # 2. Send it to the Database! 
-            # (This example uses Supabase syntax, adjust slightly if using Firebase/SQLite)
+        current_coins = st.session_state.coins
+        levels_list = list(st.session_state.cleared_levels) 
+        lore_list = st.session_state.unlocked_lore
+        # 🌟 NEW: Grab the unlocked chapters
+        chapters_list = st.session_state.unlocked_chapters 
+        username = st.session_state.username 
+        
         supabase.table("profiles").update({
             "coins": current_coins,
             "cleared_levels": levels_list,
-            "unlocked_lore": lore_list
+            "unlocked_lore": lore_list,
+            "unlocked_chapters": chapters_list # 🌟 NEW: Send to database
         }).eq("username", username).execute()
-            
+        
         st.toast("Progress Saved Successfully!", icon="💾")
     except Exception as e:
         st.error(f"Failed to save progress: {e}")
 
 def load_player_data(username):
-    """Fetches data from the database and loads it into the game memory."""
     try:
-            # 1. Fetch from Database
-        response = supabase.table("profiles").select("coins, cleared_levels, unlocked_lore").eq("username", username).execute()
+        response = supabase.table("profiles").select("coins, cleared_levels, unlocked_lore, unlocked_chapters").eq("username", username).execute()
         user_data = response.data[0]
-            
-            # 2. Inject into Session State
+        
         st.session_state.coins = user_data.get("coins", 0)
-            
-            # Convert the saved list back into a Python Set for the game logic
+        
         saved_levels = user_data.get("cleared_levels", [])
         st.session_state.cleared_levels = set(saved_levels) if saved_levels else set()
-            
+        
         saved_lore = user_data.get("unlocked_lore", [])
         st.session_state.unlocked_lore = saved_lore if saved_lore else []
-            
+        
+        # 🌟 NEW: Load the chapters, or default to just Chapter 1 if they are new!
+        saved_chapters = user_data.get("unlocked_chapters", [])
+        st.session_state.unlocked_chapters = saved_chapters if saved_chapters else ["Chapter 1: The Quantum Key (BB84)"]
+        
     except Exception as e:
         st.error(f"Failed to load player data: {e}")
+
 if "story_circuit_logic" not in st.session_state:
     st.session_state.story_circuit_logic = [] # Alice's personal circuit memory
 
@@ -132,7 +132,7 @@ if not st.session_state.logged_in:
                     st.error("⚠️ Username already taken. Please choose another one.")
                 else:
                     # Insert the new user into the database with 0 coins
-                    supabase.table("profiles").insert({"username": username, "password": password, "coins": 0, "cleared_levels": [], "unlocked_lore": []}).execute()
+                    supabase.table("profiles").insert({"username": username, "password": password, "coins": 0, "cleared_levels": [], "unlocked_lore": [], "unlocked_chapters": ["Chapter 1: The Quantum Key (BB84)"]}).execute()
                     st.success(f"✅ Profile '{username}' created! You can now log in.")
             else:
                 st.warning("Please enter both username and password.")
@@ -209,7 +209,7 @@ else:
 
         
     st.sidebar.subheader("Navigation")
-    current_page = st.sidebar.radio("", ["🧘‍♀️ Sandbox Mode","📖 Interactive Tutorials","🎮 Play Challenge", "🕵️‍♀️ Story Mode","🏪 Quantum Shop", "📖 How to Play","🎲 symbols sheets","🌀 Readme-Gates"])
+    current_page = st.sidebar.radio("", ["🧘‍♀️ Sandbox Mode","📖 Interactive Tutorials","🎮 Play Challenge", "🕵️‍♀️ Story Mode","🏪 Quantum Shop", "📖 How to Play","🎲 symbols sheets","🌀 Readme-Gates","📜 Version Log"])
 
 
 
@@ -233,14 +233,19 @@ else:
 
 
     with st.sidebar.expander("About"):
-        st.write("### ⚙️ System Environment")
-        st.write("- **Frontend UI:** Streamlit")
-        st.write("- **Quantum Logic:** IBM Qiskit")
-        st.write("- **Visual Rendering:** Matplotlib, NumPy, pylatexenc")
+        st.write("### ⚙️ Tech Stack")
+        st.write("- **Frontend:** Streamlit")
+        st.write("- **Quantum Engine:** IBM Qiskit & AerSimulator") # Updated!
+        st.write("- **Visuals:** Matplotlib, pylatexenc")
+        st.write("- **Database:** Supabase (PostgreSQL)") # Updated!
         st.divider()
         st.write("**Developed by:** SAKHI")
-        st.write("**Contact:** sayikiruthikedu")
-        st.write("**GitHub:** https://github.com/SAYI-KIRUTHIK/Qiuz-quantum-puzzle")
+        st.write("**Contact:** sayikiruthikedu@gmail.com") # Add your email if you want!
+        st.write("**GitHub:** [SAYI-KIRUTHIK/Qiuz-quantum-puzzle](https://github.com/SAYI-KIRUTHIK/Qiuz-quantum-puzzle)")
+    
+    # 🌟 NEW: The Version Number floats at the bottom of the sidebar
+    st.sidebar.divider()
+    st.sidebar.caption("✨ Version 5.3.6 | alpha")
 
 
     # --- 2. DEFINE LEVELS (With Rewards Included!) ---
@@ -1695,4 +1700,66 @@ else:
                                 args=(choice['next_scene'],),
                                 use_container_width=True
                             )
+    # ==========================================
+    # 📜 VERSION LOG & DEV DIARY
+    # ==========================================
+    elif current_page == "📜 Version Log":
+        st.header("📜 Version Log & Developer Diary")
+        
+        # 🌟 Your Developer Message
+        st.info("### 💌 A Message from the Developer\nWelcome to Qiuz! While the Sandbox and Tutorials are great tools for learning the math, my main attraction is the **Story Mode**. I built this game because textbooks often struggle to explain *why* we use specific quantum gates in the real world. By playing through the Alice & Bob espionage thriller, you get to actually experience the magic of quantum cryptography firsthand. The other modes exist to help you practice your skills and earn coins before taking on Eve. I hope you enjoy playing it as much as I enjoyed building it!")
+        
+        st.divider()
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("### 🚀 Release Notes")
+            with st.expander("**v5.3 - The Alice & Bob Update** (Current)", expanded=True):
+                st.markdown("""
+                - 🕵️‍♀️ **New Feature:** Added Story Mode with 3 fully playable chapters (BB84, Teleportation, Superdense Coding).
+                - 💾 **New Feature:** Supabase cloud saving enabled for Player Profiles, Coins, and Chapter progress.
+                - 🏪 **New Feature:** The Quantum Lore Shop is open for business.
+                - 🛠️ **Improvements:** Sandbox now automatically switches to AerSimulator if Measurement gates are added.
+                - 🎨 **UI:** Applied clean 'Academic Textbook' theme across all visualizers.
+                """)
+            with st.expander("**v4.6**"):
+                st.write("-Login page setup, database schema completed, checked functions")
+            with st.expander("**v4.2**"):
+                st.write("-Sandbox stable release.\n- Implemented Map Save/Load system.")
+
+            with st.expander("**v3.9**"):
+                st.write("- Sandbox minor upgrade.\n- Added Challenge Mode.\n- Implemented Qiskit Statevector rendering.")
+
+            with st.expander("**v3.0**"):
+                st.write("- Added Undo/Redo functionality to the Sandbox.\n- Implemented Map Save/Load system.")
+            with st.expander("**v2.5**"):
+                st.write("-Themed the entire app with a sleek 'Academic Textbook' style.\n- Updated all quantum visualizations to match the new theme.\n- Added a new 'Calculate Output State' ")
+            with st.expander("**v2.0**"):
+                st.write("-Added the Quantum Toolbox with CNOT and Toffoli gates!")
+            with st.expander("**v1.8**"):
+                st.write("-Added Quantum symbols chart.\n- Readme file for Gates")
+            with st.expander("**v1.5**"):
+                st.write("-Shop added.\n- Coins and rewards system introduced.")
+            with st.expander("**v1.0**"):
+                st.write("-Initial release with basic Sandbox and Tutorial modes.")
+
+                
+        with col2:
+            st.write("### 🍳 What's Cooking (Future Updates)")
+            st.markdown("""
+            - 🧩 **Story Mode** New levels.
+            - 🎵 **Sound Design:** Adding subtle UI clicks and success sounds.
+            - 🏆 **Leaderboards:** See who can beat the challenges in the fewest moves!
+            - 🤖 **AI Opponent:** A simple Eve bot that tries to guess your circuit.")
+            
+        st.divider()
+        
+        st.write("### 🤝 How to Contribute")
+        st.write("Found a bug? Have an idea for a new Story Chapter? I would love to hear from you!")
+        st.markdown("""
+        1. **Report a Bug:** Open an issue on our [GitHub Repository](https://github.com/SAYI-KIRUTHIK/Qiuz-quantum-puzzle).
+        2. **Send an Email:** Reach out to me directly at (sayi.kiruthik@gmail.com).
+        3. **Fork the Code:** Want to add your own quantum algorithms? Fork the repo and submit a Pull Request!
+        """)
         
