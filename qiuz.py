@@ -87,9 +87,7 @@ if not st.session_state.logged_in:
 else:
     # --- The User is Logged In! ---
     
-    st.sidebar.success(f"👤 Playing as: {st.session_state.username}")
-    st.sidebar.metric(label="Schrödinger Coins", value=f"{st.session_state.coins} 🐈‍⬛")
-    
+    st.sidebar.success(f"👤 Playing as: {st.session_state.username}")    
     # The Log Out Button
     if st.sidebar.button("Save & Log Out"):
         # Save their current coins to the database before they leave
@@ -1013,11 +1011,6 @@ else:
                             st.session_state.checked = False
                         else:
                             st.error("❌ Vector Mismatch. Try again.")
-            st.sidebar.success(f"👤 Playing as: {st.session_state.username}")
-    
-            if st.sidebar.button("Save & Log Out"):
-                st.session_state.logged_in = False
-                st.rerun()
 
 
 
