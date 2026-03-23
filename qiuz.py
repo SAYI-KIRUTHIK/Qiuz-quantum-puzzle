@@ -978,10 +978,7 @@ else:
 # ==========================================
 # 1. INITIALIZE SANDBOX MEMORY
 #  ==========================================
-            if "sb_qubits" not in st.session_state:
-                st.session_state.sb_qubits = 3 # Default to 3 qubits
-            if "sb_circuit_logic" not in st.session_state:
-                st.session_state.sb_circuit_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
+
 
             # ==========================================
             # 2. FAST CALLBACK FUNCTIONS
@@ -992,6 +989,10 @@ else:
 # 3. THE SANDBOX UI
 # ==========================================
     if current_page == "🧘‍♀️ Sandbox Mode":
+        if "sb_qubits" not in st.session_state:
+            st.session_state.sb_qubits = 3 # Default to 3 qubits
+        if "sb_circuit_logic" not in st.session_state:
+            st.session_state.sb_circuit_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
         st.header("🧘‍♀️ Sandbox Mode: Free Play")
         def add_gate(gate, target, control=None):
             """Quickly adds a gate to the memory without double-loading."""
