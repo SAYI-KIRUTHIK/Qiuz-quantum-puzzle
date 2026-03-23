@@ -1,0 +1,15 @@
+[theme]
+# The main accent color (used for the 'Primary' buttons and loading bars)
+primaryColor = "#00FFAA" 
+
+# The main background color of the app (Deep space dark blue/grey)
+backgroundColor = "#0F111A"
+
+# The background of the sidebar and input boxes (Slightly lighter)
+secondaryBackgroundColor = "#1E2130"
+
+# The color of the text
+textColor = "#FFFFFF"
+
+# The font style (Options: "sans serif", "serif", or "monospace")
+font = "sans serif"
