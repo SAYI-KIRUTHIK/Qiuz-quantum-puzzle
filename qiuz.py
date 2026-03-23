@@ -1141,7 +1141,7 @@ else:
                         result = sim.run(qc, shots=1024).result()
                         counts = result.get_counts()
                         
-                        fig_hist = plot_histogram(counts, figsize=(5, 4))
+                        fig_hist = plot_histogram(counts, figsize=(10, 3))
                         st.pyplot(fig_hist, use_container_width=False)
                     except Exception as e:
                         st.error(f"⚠️ Simulation Error: {e}")
@@ -1158,11 +1158,11 @@ else:
                         tab_probs, tab_bloch = st.tabs(["📊 Probabilities", "🌐 Bloch Spheres"])
                         
                         with tab_probs:
-                            fig_hist = plot_histogram(sv.probabilities_dict(), figsize=(5, 4))
+                            fig_hist = plot_histogram(sv.probabilities_dict(), figsize=(10, 3))
                             st.pyplot(fig_hist, use_container_width=False)
                             
                         with tab_bloch:
-                            fig_bloch = plot_bloch_multivector(sv, figsize=(6, 6))
+                            fig_bloch = plot_bloch_multivector(sv)
                             st.pyplot(fig_bloch, use_container_width=False)
                             
                     except Exception as e:
