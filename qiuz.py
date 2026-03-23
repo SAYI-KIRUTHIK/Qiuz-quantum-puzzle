@@ -1513,6 +1513,9 @@ else:
                         st.session_state.coins += 50 # Big payout for beating a story chapter!
                         st.toast(f"🔓 Unlocked: {next_chap}!", icon="✨")
                         st.toast("💰 Earned 50 Catty-Coins for clearing the chapter!", icon="🐈‍⬛")
+
+        # --- 3. THE CHAPTER SELECTOR ---
+        all_chapters = list(story_script.keys())
         
         # Create a nice layout for the top menu
         col_nav, _ = st.columns([2, 1])
