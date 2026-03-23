@@ -1061,8 +1061,9 @@ else:
             elif g == "CX" and c is not None: qc.cx(c, t)
 
         # Draw it! (Assuming you are using matplotlib for visuals)
-        fig = qc.draw(output='mpl')
-        st.pyplot(fig)
+        with st.container(border=True):
+            fig = qc.draw(output='mpl')
+            st.pyplot(fig)
 
         # ==========================================
         # 5. THE GATE TOOLBOX (Buttons)
