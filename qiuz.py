@@ -8,6 +8,8 @@ from qiskit.quantum_info import Statevector
 from supabase import create_client,Client
 from qiskit.visualization import plot_histogram, plot_bloch_multivector
 from qiskit_aer import AerSimulator
+import time
+import random
 
 @st.cache_resource
 def init_connection():
@@ -805,7 +807,16 @@ else:
             with st.popover("Objective Menu", use_container_width=True):
                 st.write("These challenges are adapted from various textbooks on *Quantum Computation and Circuit Design* by various authors. The examples can added from the suggestions from local communities. The goal is to give players a taste of the classic textbook exercises, but in a more interactive way. Each challenge has a specific target state that you must create using the quantum gates at your disposal. If you can match the target state, you win the challenge.")
                 ch_choice = st.radio("Objectives", list(challenges.keys()), horizontal=True, label_visibility="collapsed")
-
+                # --- INITIALIZE CHALLENGE CONSTRAINTS ---
+# If they picked a new level, reset the stopwatch and generate new goals
+                if "current_ch" not in st.session_state or st.session_state.current_ch != ch_choice:
+                    st.session_state.current_ch = ch_choice
+                    st.session_state.ch_start_time = time.time() # Start the stopwatch!
+                    
+                    # Randomly assign what kind of challenge this is
+                    st.session_state.ch_type = random.choice(["time", "moves", "both"])
+                    st.session_state.target_moves = random.randint(2, 5)
+                    st.session_state.target_time = random.randint(10, 25) # Seconds
                     
                 ch_data = challenges[ch_choice]
                 num_q = ch_data["qubits"]
@@ -964,18 +975,59 @@ else:
                         current_sv = Statevector(qc)
                         st.write("### 🔍 Results")
                         st.write("**Your Resulting State Vector:**")
-                        st.code(np.round(current_sv.data, 3))        
+                        
+                        # ... (Keep your math_string / LaTeX drawing here if you have it) ...
+
                         if Statevector(qc).equiv(target_sv):
-                            st.success(f"🏆 Successfully completed {ch_choice} !")
-                            st.session_state.cleared_levels.add(ch_choice)
-                            if ch_choice not in st.session_state.cleared_levels:
+                            # 1. FIX THE BUG: Check if it's a new clear BEFORE adding it
+                            is_new_clear = ch_choice not in st.session_state.cleared_levels
+                            
+                            # 2. CALCULATE PERFORMANCE
+                            moves_taken = len(qc.data) # Number of gates on the circuit
+                            time_taken = int(time.time() - st.session_state.ch_start_time)
+                            
+                            # 3. DISPLAY STATS
+                            st.write(f"⏱️ **Time:** {time_taken}s")
+                            st.write(f"🔄 **Moves:** {moves_taken}")
+                            
+                            # 4. CALCULATE STARS AND BONUSES
+                            stars = 1
+                            bonus = 0
+                            
+                            # Evaluate based on the randomly assigned challenge type
+                            if st.session_state.ch_type in ["moves", "both"]:
+                                st.caption(f"🎯 Move Goal: {st.session_state.target_moves} or fewer")
+                                if moves_taken <= st.session_state.target_moves:
+                                    stars += 1
+                                    bonus += 5
+                                    
+                            if st.session_state.ch_type in ["time", "both"]:
+                                st.caption(f"🎯 Time Goal: {st.session_state.target_time}s or faster")
+                                if time_taken <= st.session_state.target_time:
+                                    stars += 1
+                                    bonus += 5
+                                    
+                            # Draw the stars!
+                            star_display = "⭐" * stars + "🌑" * (3 - stars)
+                            st.success(f"### {star_display} Challenge Cleared!")
+                            
+                            # 5. PAYOUT THE COINS
+                            if is_new_clear:
+                                total_reward = ch_reward + bonus
                                 st.session_state.cleared_levels.add(ch_choice)
-                                st.session_state.coins += ch_reward
-                                st.toast(f"💰 You earned {ch_reward} Catty-Coins!",icon="🐈‍⬛")
-                                st.rerun() # Forces a refresh to instantly update the dropdown and textbook
-                            st.session_state.checked = False
+                                st.session_state.coins += total_reward # Actually adds the coins!
+                                
+                                st.toast(f"🎉 Earned {total_reward} Catty-Coins ({ch_reward} base + {bonus} bonus)!", icon="🐈‍⬛")
+                                
+                                # (Optional: If you connected Supabase earlier, you should push the new coin total to the database here!)
+                                
+                            else:
+                                st.info("You have already cleared this level, but great job improving your score!")
+                                
+                            st.session_state.checked = False # Reset the check button
                         else:
                             st.error("❌ Vector Mismatch. Try again.")
+                            st.session_state.checked = False
 
 
     if current_page == "🧘‍♀️ Sandbox Mode":
