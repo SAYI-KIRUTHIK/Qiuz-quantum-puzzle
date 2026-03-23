@@ -1,6 +1,8 @@
 import os
 import json
 import io
+
+from hypothesis import target
 import streamlit as st
 import numpy as np
 from qiskit import QuantumCircuit
@@ -1409,44 +1411,84 @@ else:
         # --- 1. THE SCRIPT (The Dictionary) ---
         # This is where we write the entire game. No UI code goes in here!
         story_script = {
-            "Chapter 1: The Quantum Key (BB84)": {
-                "start": {
-                    "icon": "👩‍💻",
-                    "text": "Alice sits at her terminal. The neon glow reflects in her eyes. 'I need to send a secure key to Bob,' she mutters, 'but Eve is listening on the standard channels.'\n\nWhat should Alice do?",
-                    "choices": [
-                        {"label": "Send it via standard encrypted email.", "next_scene": "fail_email"},
-                        {"label": "Boot up the Quantum Channel.", "next_scene": "q_channel"}
-                    ]
+                "Chapter 1: The Quantum Key (BB84)": {
+                    "start": {
+                        "icon": "👩‍💻",
+                        "text": "Alice sits at her terminal. 'I need to send a secure key to Bob,' she mutters, 'but Eve is listening on the standard channels.'\n\nWhat should Alice do?",
+                        "choices": [
+                            {"label": "Send it via standard encrypted email.", "next_scene": "fail_email"},
+                            {"label": "Boot up the Quantum Channel.", "next_scene": "q_channel"}
+                        ]
+                    },
+                    "fail_email": {
+                        "icon": "🚨",
+                        "text": "Alice hits send. Five seconds later, her screen flashes RED. Eve cracked the RSA encryption. The codes are stolen.\n\n**MISSION FAILED.**",
+                        "choices": [{"label": "Rewind Time (Retry)", "next_scene": "start"}]
+                    },
+                    "q_channel": {
+                        "icon": "⚛️",
+                        "text": "Alice initializes the quantum link. She decides to send a binary '0', but encoded in the **Hadamard (Diagonal) Basis** so Eve can't easily read it.\n\n**MISSION:** Prepare Qubit 0 in the $|+\\rangle$ state (Equal Superposition).",
+                        "is_puzzle": True,
+                        "qubits": 1,
+                        "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]),
+                        "success_scene": "eve_intercepts",
+                        "fail_scene": "wrong_state"
+                    },
+                    "wrong_state": {
+                        "icon": "❌",
+                        "text": "Bob calls. 'Alice, I measured the qubit in the diagonal basis, but I got a 1. Did you send the wrong state?'\n\nEve chuckles in the background. **MISSION FAILED.**",
+                        "choices": [{"label": "Recalibrate Qubit", "next_scene": "q_channel"}]
+                    },
+                    "eve_intercepts": {
+                        "icon": "🦹‍♀️",
+                        "text": "You successfully transmit the $|+\\rangle$ state. But midway through the fiber optic cable, **Eve intercepts it!**\n\nEve doesn't know you used the Diagonal basis. She guesses and measures your qubit in the Standard (Z) basis. Because your qubit was in superposition, her measurement forces it to randomly collapse into a $|0\rangle$ or $|1\rangle$.\n\nShe then forwards this corrupted qubit to Bob.",
+                        "choices": [{"label": "Wait for Bob's Call...", "next_scene": "bob_receives"}]
+                    },
+                    "bob_receives": {
+                        "icon": "📞",
+                        "text": "Bob calls on the secure line.\n\n'Alice, we caught her. I measured the qubit in our agreed diagonal basis, but I got a random result instead of a perfect 0. Someone collapsed the wave function before it reached me. The line is tapped.'\n\nBy comparing notes, Alice and Bob successfully detected Eve's eavesdropping—this is the true power of the BB84 protocol!\n\n**CHAPTER 1 CLEARED!**",
+                        "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
+                        "chapter_clear": True
+                    }
                 },
-                "fail_email": {
-                    "icon": "🚨",
-                    "text": "Alice hits send. Five seconds later, her screen flashes RED. Eve cracked the RSA encryption. The codes are stolen.\n\n**MISSION FAILED.**",
-                    "choices": [{"label": "Rewind Time (Retry)", "next_scene": "start"}]
-                },
-                "q_channel": {
-                    "icon": "⚛️",
-                    "text": "Alice initializes the quantum link. She decides to send a binary '0', but encoded in the **Hadamard (Diagonal) Basis** so Eve can't easily read it.\n\n**MISSION:** Prepare your Qubit in the $|+\\rangle$ state (Equal Superposition), then Transmit it to Bob.",
-                    "is_puzzle": True, # 🌟 THE MAGIC FLAG 🌟
-                    "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]), # The exact math for |+>
-                    "success_scene": "bob_receives",
-                    "fail_scene": "wrong_state"
-                },
-                "wrong_state": {
-                    "icon": "❌",
-                    "text": "Bob calls Alice on the burner phone. 'Alice, I measured the qubit in the diagonal basis, but I got completely random data. Did you send the wrong state?'\n\nEve chuckles softly in the background.\n\n**MISSION FAILED.**",
-                    "choices": [{"label": "Recalibrate Qubit (Retry)", "next_scene": "q_channel"}]
-                },
-                "bob_receives": {
-                    "icon": "📞",
-                    "text": "The secure phone rings. It's Bob.\n\n'Alice, I received the qubit and measured it in the diagonal basis. I got a perfect 0. The quantum link is secure. Eve is blind.'\n\n**CHAPTER 1 CLEARED!**",
-                    "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
-                    "chapter_clear": True # We can use this later to award coins!
+                "Chapter 2: The Spooky Link (Teleportation)": {
+                    "start": {
+                        "icon": "✂️",
+                        "text": "Eve realized she couldn't break the BB84 cryptography, so she took a simpler approach: she took a pair of scissors and cut the quantum fiber-optic cable between Alice and Bob.\n\n'Great,' Alice sighs. 'I need to send this volatile quantum data to Bob, but I only have a regular, classical telephone line left.'",
+                        "choices": [
+                            {"label": "Give up. Quantum data can't travel over standard phones.", "next_scene": "fail_give_up"},
+                            {"label": "Initiate Quantum Teleportation.", "next_scene": "entangle_puzzle"}
+                        ]
+                    },
+                    "fail_give_up": {
+                        "icon": "💀",
+                        "text": "Alice goes home. The data is never sent. The world ends.\n\n**MISSION FAILED.**",
+                        "choices": [{"label": "Rewind Time", "next_scene": "start"}]
+                    },
+                    "entangle_puzzle": {
+                        "icon": "🔗",
+                        "text": "To teleport data, Alice and Bob first need to share a pair of entangled qubits (A Bell State). Alice has Qubit 0, and Bob has Qubit 1.\n\n**MISSION:** Entangle the two qubits. Apply a Hadamard to Qubit 0, then use it to Control a NOT gate (CNOT) on Qubit 1.",
+                        "is_puzzle": True,
+                        "qubits": 2, # Notice this requires 2 qubits!
+                        "target_state": Statevector([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]),
+                        "success_scene": "teleport_ready",
+                        "fail_scene": "wrong_entangle"
+                    },
+                    "wrong_entangle": {
+                        "icon": "❌",
+                        "text": "The qubits fail to sync. 'Alice, my qubit isn't responding to yours,' Bob says.\n\n**MISSION FAILED.**",
+                        "choices": [{"label": "Reboot Lasers", "next_scene": "entangle_puzzle"}]
+                    },
+                    "teleport_ready": {
+                        "icon": "✨",
+                        "text": "A perfect Bell State is formed. Einstein's 'Spooky Action at a Distance' is active.\n\n'Alright Bob,' Alice says. 'I'm going to entangle my secret data with my half of the Bell pair, measure them both, and call you with the classical 1s and 0s. You can use those to reconstruct the data on your end!'\n\n**CHAPTER 2 CLEARED!**",
+                        "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
+                        "chapter_clear": True
+                    }
                 }
-            },
-            "Chapter 2: The Spooky Link (Teleportation)": {
-            }
-        }    # ... keep your existing Chapter 2 placeholder here
-            
+            }    # ... keep your existing Chapter 2 placeholder here
+        def add_story_gate(gate, target=0, control=None):
+            st.session_state.story_circuit_logic.append({"gate": gate, "target": target, "control": control})
         # --- 2. FAST CALLBACK TO CHANGE SCENES ---
         def change_scene(next_scene_name):
             st.session_state.current_scene = next_scene_name
@@ -1491,27 +1533,49 @@ else:
                     st.divider()
                     st.write("### 🧰 Alice's Quantum Terminal")
                     
+                    # Dynamic Qubit Count based on the story script!
+                    num_qubits = scene_data.get("qubits", 1)
+                    
+                    # If there are multiple qubits, let them choose the target!
+                    if num_qubits > 1:
+                        target_q = st.radio("🎯 Select Target Qubit:", range(num_qubits), horizontal=True)
+                    else:
+                        target_q = 0 # Default to 0 if it's a 1-qubit puzzle
+                    
                     # 1. The Mini Toolbox
-                    col1, col2, col3, col4, col5 = st.columns(5)
-                    col1.button("Apply X", on_click=add_story_gate, args=("X",), key="st_x")
-                    col2.button("Apply Y", on_click=add_story_gate, args=("Y",), key="st_y")
-                    col3.button("Apply Z", on_click=add_story_gate, args=("Z",), key="st_z")
-                    col4.button("Apply H", on_click=add_story_gate, args=("H",), key="st_h")
-                    col5.button("🗑️ Clear", on_click=clear_story_circuit, key="st_clear")
+                    st.write("**Standard Gates:**")
+                    c1, c2, c3, c4, c_clr = st.columns(5)
+                    c1.button("Apply X", on_click=add_story_gate, args=("X", target_q), key="st_x")
+                    c2.button("Apply Y", on_click=add_story_gate, args=("Y", target_q), key="st_y")
+                    c3.button("Apply Z", on_click=add_story_gate, args=("Z", target_q), key="st_z")
+                    c4.button("Apply H", on_click=add_story_gate, args=("H", target_q), key="st_h")
+                    c_clr.button("🗑️ Clear", on_click=clear_story_circuit, key="st_clear")
+                    
+                    if num_qubits > 1:
+                        st.write("**Entanglement Gates:**")
+                        # For a 2 qubit puzzle, if Target is 0, Control is 1 (and vice versa)
+                        ctrl_q = 1 if target_q == 0 else 0
+                        st.button(f"Apply CNOT (Control: Q{ctrl_q} → Target: Q{target_q})", 
+                                on_click=add_story_gate, args=("CX", target_q, ctrl_q), key="st_cx")
                     
                     # 2. Build and Draw the Circuit
-                    st_qc = QuantumCircuit(1) # We only need 1 qubit for this BB84 step
-                    for gate in st.session_state.story_circuit_logic:
-                        if gate == "X": st_qc.x(0)
-                        elif gate == "Y": st_qc.y(0)
-                        elif gate == "Z": st_qc.z(0)
-                        elif gate == "H": st_qc.h(0)
+                    st_qc = QuantumCircuit(num_qubits) 
+                    for inst in st.session_state.story_circuit_logic:
+                        g = inst["gate"]
+                        t = inst["target"]
+                        c = inst.get("control")
+                        
+                        if g == "X": st_qc.x(t)
+                        elif g == "Y": st_qc.y(t)
+                        elif g == "Z": st_qc.z(t)
+                        elif g == "H": st_qc.h(t)
+                        elif g == "CX": st_qc.cx(c, t)
                         
                     fig = st_qc.draw(output='mpl', scale=0.8)
                     st.pyplot(fig, use_container_width=False)
                     
                     # 3. The Check Answer Button
-                    if st.button("📡 Transmit Qubit to Bob", type="primary", use_container_width=True):
+                    if st.button("📡 Execute Protocol", type="primary", use_container_width=True):
                         current_sv = Statevector(st_qc)
                         
                         if current_sv.equiv(scene_data["target_state"]):
