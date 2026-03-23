@@ -1083,7 +1083,7 @@ else:
             if uploaded_file is not None:
                 # We use a button to confirm the load so it doesn't happen accidentally
                 st.button("Confirm Load", on_click=load_map, args=(uploaded_file,))
-            
+            buf = io.BytesIO()
             st.download_button(
                 label="🖼️ Download Circuit as PNG",
                 data=buf.getvalue(),
@@ -1136,7 +1136,7 @@ else:
             fig.savefig(buf, format="png", bbox_inches="tight", transparent=False, facecolor="#F8F6F0")
             
             # 3. Create the download button
-
+            st.divider()
 
 
         # ==========================================
