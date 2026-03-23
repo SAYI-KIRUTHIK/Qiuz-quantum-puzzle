@@ -6,6 +6,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
 from supabase import create_client,Client
 from qiskit.visualization import plot_histogram, plot_bloch_multivector
+from qiskit_aer import AerSimulator
 
 @st.cache_resource
 def init_connection():
@@ -980,7 +981,9 @@ else:
         if "sb_qubits" not in st.session_state:
             st.session_state.sb_qubits = 3 # Default to 3 qubits
         if "sb_circuit_logic" not in st.session_state:
-            st.session_state.sb_circuit_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
+            st.session_state.sb_circuit_logic = []
+        if "sb_redo_logic" not in st.session_state: # <--- NEW REDO MEMORY
+            st.session_state.sb_redo_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
         st.header("🧘‍♀️ Sandbox Mode: Free Play")
         def add_gate(gate, target, control1=None, control2=None):
             """Adds a gate to memory, with built-in quantum physics safety checks."""
@@ -999,6 +1002,16 @@ else:
         def clear_sandbox():
             st.session_state.sb_circuit_logic = []
 
+        def undo_gate():
+            if len(st.session_state.sb_circuit_logic) > 0:
+        # Pop the last gate off the circuit and save it to the redo list
+                st.session_state.sb_redo_logic.append(st.session_state.sb_circuit_logic.pop())
+
+        def redo_gate():
+            if len(st.session_state.sb_redo_logic) > 0:
+        # Pop the last gate off the redo list and put it back on the circuit
+                st.session_state.sb_circuit_logic.append(st.session_state.sb_redo_logic.pop())
+
         def load_map(uploaded_json):
             """Reads a file and overwrites the sandbox memory."""
             if uploaded_json is not None:
@@ -1013,8 +1026,12 @@ else:
         with col_controls:
             # Qubit Selector
             st.session_state.sb_qubits = st.slider("Select Number of Qubits", min_value=1, max_value=5, value=st.session_state.sb_qubits)
-            if st.button("🗑️ Clear Circuit", on_click=clear_sandbox):
-                pass
+            b1, b2, b3 = st.columns(3)
+    
+    # We even use 'disabled' so they turn gray if there's nothing to undo/redo!
+            b1.button("↩️ Undo", on_click=undo_gate, use_container_width=True, disabled=(len(st.session_state.sb_circuit_logic) == 0))
+            b2.button("↪️ Redo", on_click=redo_gate, use_container_width=True, disabled=(len(st.session_state.sb_redo_logic) == 0))
+            b3.button("🗑️ Clear", on_click=clear_sandbox, use_container_width=True)
                     # ==========================================
             # 5. THE ADVANCED GATE TOOLBOX
             # ==========================================
@@ -1107,36 +1124,48 @@ else:
         # ==========================================
         # 6. QUANTUM VISUALIZERS
         # ==========================================
+            # ==========================================
+    # 6. QUANTUM VISUALIZERS (THE SMART BUTTON)
+    # ==========================================
             if st.button("🔬 Calculate Output State", type="primary", use_container_width=True):
+                
+                # SCENARIO A: A collapsed circuit (Contains Measurements)
+                if has_measurements:
+                    st.write("### 🎲 Quantum Simulator Results")
+                    st.warning("You added a Measurement gate! The wave function collapsed, so we can't show Dirac math anymore.")
+                    st.write("We ran your circuit on a virtual quantum chip 1,024 times. Here are the results:")
                     
                     try:
-                        # 1. Do the heavy math
+                        sim = AerSimulator()
+                        # Run the simulation
+                        result = sim.run(qc, shots=1024).result()
+                        counts = result.get_counts()
+                        
+                        fig_hist = plot_histogram(counts, figsize=(5, 4))
+                        st.pyplot(fig_hist, use_container_width=False)
+                    except Exception as e:
+                        st.error(f"⚠️ Simulation Error: {e}")
+                        
+                # SCENARIO B: Pure Math (No Measurements)
+                else:
+                    try:
                         sv = Statevector(qc)
                         
-                        # 2. Show the Dirac Math explicitly
                         st.write("### 🧮 Final Quantum State (Dirac Notation)")
-                        st.info("This is the exact mathematical state of your current circuit:")
-                        
-                        # Grab the raw LaTeX from Qiskit and render it beautifully in Streamlit
                         math_string = sv.draw(output='latex_source')
                         st.latex(math_string)
                         
-                        # 3. Build the Visualizer Dashboard
-                        st.write("### 🔭 Visualizations")
                         tab_probs, tab_bloch = st.tabs(["📊 Probabilities", "🌐 Bloch Spheres"])
                         
                         with tab_probs:
-                            st.write("If we measured this circuit 1,000 times, here is the % chance of each result:")
-                            fig_hist = plot_histogram(sv.probabilities_dict(),figsize=(10,5))
+                            fig_hist = plot_histogram(sv.probabilities_dict(), figsize=(5, 4))
                             st.pyplot(fig_hist, use_container_width=False)
                             
                         with tab_bloch:
-                            st.write("The physical state of each individual qubit represented in 3D space:")
-                            fig_bloch = plot_bloch_multivector(sv)
+                            fig_bloch = plot_bloch_multivector(sv, figsize=(6, 6))
                             st.pyplot(fig_bloch, use_container_width=False)
                             
                     except Exception as e:
-            # This will print the ACTUAL Python error to the screen
                         st.error(f"⚠️ Error details: {e}")
 
 
