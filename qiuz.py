@@ -268,33 +268,33 @@ else:
                     with st.expander("🛠️ Available Quantum Gates", expanded=True):
                 
                 # This loop automatically builds a row for however many qubits the challenge has!
-                        for i in range(num_q):
+                        for i in range(num_qubits):
                             st.markdown(f"**Qubit {i}**")
                     
                     # Create 4 tiny columns just for the buttons on this specific row
                             g1, g2, g3, g4 = st.columns(4)
                     
                             with g1:
-                                if st.button("X", key=f"x{i}", use_container_width=True): qc.x(i);save_state()
+                                if st.button("X", key=f"x{i}", use_container_width=True): qc.x(i)
                             with g2:
-                                if st.button("Y", key=f"y{i}", use_container_width=True): qc.y(i);save_state()
+                                if st.button("Y", key=f"y{i}", use_container_width=True): qc.y(i)
                             with g3:
-                                if st.button("Z", key=f"z{i}", use_container_width=True): qc.z(i);save_state()
+                                if st.button("Z", key=f"z{i}", use_container_width=True): qc.z(i)
                             with g4:
-                                if st.button("H", key=f"h{i}", use_container_width=True): qc.h(i);save_state()
+                                if st.button("H", key=f"h{i}", use_container_width=True): qc.h(i)
                         
                             st.divider() # Adds a neat line between qubits
                     
                 # Multi-Qubit Gates (Placed at the very bottom, taking up the full width)
-                        if num_q > 1:
+                        if num_qubits > 1:
                             st.markdown("**Two-Qubit Gates**")
-                            if st.button("CNOT (Ctrl: q0, Targ: q1)", key="cx01", use_container_width=True): qc.cx(0, 1);save_state()
-                            if st.button("CNOT (Ctrl: q1, Targ: q0)", key="cx10", use_container_width=True): qc.cx(1, 0);save_state() 
-                        if num_q > 2:
+                            if st.button("CNOT (Ctrl: q0, Targ: q1)", key="cx01", use_container_width=True): qc.cx(0, 1)
+                            if st.button("CNOT (Ctrl: q1, Targ: q0)", key="cx10", use_container_width=True): qc.cx(1, 0) 
+                        if num_qubits > 2:
                             st.markdown("**Three-Qubit Gates**")
-                            if st.button("Toffoli (Ctrl: q0,q1, Targ: q2)", key="ccx012", use_container_width=True): qc.ccx(0, 1, 2);save_state()   
-                            if st.button("Toffoli (Ctrl: q0,q2, Targ: q1)", key="ccx021", use_container_width=True): qc.ccx(0, 2, 1);save_state()
-                            if st.button("Toffoli (Ctrl: q1,q2, Targ: q0)", key="ccx120", use_container_width=True): qc.ccx(1, 2, 0);save_state()
+                            if st.button("Toffoli (Ctrl: q0,q1, Targ: q2)", key="ccx012", use_container_width=True): qc.ccx(0, 1, 2)   
+                            if st.button("Toffoli (Ctrl: q0,q2, Targ: q1)", key="ccx021", use_container_width=True): qc.ccx(0, 2, 1)
+                            if st.button("Toffoli (Ctrl: q1,q2, Targ: q0)", key="ccx120", use_container_width=True): qc.ccx(1, 2, 0)
 
         # Evaluation
         current_state = Statevector(qc)
