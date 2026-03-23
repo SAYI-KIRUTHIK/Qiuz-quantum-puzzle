@@ -117,6 +117,8 @@ else:
 
     # --- YOUR ENTIRE GAME CODE GOES HERE ---
     history_idx = 0
+    if "unlocked_lore" not in st.session_state:
+        st.session_state.unlocked_lore = [] # Tracks the names of purchased textbook pages
 # Initialize our Game Economy Memory
     if "coins" not in st.session_state:
         st.session_state.coins = supabase.table("profiles").select("coins").eq("username", st.session_state.username).execute().data[0]["coins"]
@@ -349,44 +351,83 @@ else:
     #               PAGE 2: THE SHOP
     # ==========================================
     if current_page == "🏪 Quantum Shop":
-        st.header("🏪 The Quantum Knowledge Shop")
-        st.write("Spend your  Catty-Coins to unlock quantum secrets and many more!")
-        st.metric(label="Available Balance", value=f"{st.session_state.coins} 🐈‍⬛")
+        st.header("🏪 The Quantum Library & Shop")
+        st.write("Spend your hard-earned Catty-Coins to unlock advanced quantum physics concepts and textbook definitions.")
+        
+        # --- 1. THE LORE DATABASE ---
+        lore_db = {
+            "Superposition": {
+                "cost": 15, 
+                "icon": "🌊",
+                "text": "In classical mechanics, a coin is either heads or tails. In quantum mechanics, a qubit can exist in a linear combination of both states simultaneously until measured. Mathematically, this is represented as $|\psi\\rangle = \\alpha|0\\rangle + \\beta|1\\rangle$."
+            },
+            "Entanglement": {
+                "cost": 30, 
+                "icon": "🔗",
+                "text": "Einstein called it 'spooky action at a distance.' When two qubits become entangled (often via a CNOT gate), their physical states become permanently linked. Measuring one instantly collapses the state of the other, no matter how far apart they are."
+            },
+            "Phase Kickback": {
+                "cost": 50, 
+                "icon": "🪃",
+                "text": "A clever quantum trick where applying a controlled gate (like a CNOT) to a target qubit that is in the $|-\\rangle$ state actually 'kicks' a negative phase back onto the *control* qubit, without altering the target qubit's probabilities!"
+            },
+            "Schrödinger's Cat": {
+                "cost": 100, 
+                "icon": "🐈‍⬛",
+                "text": "A famous thought experiment by Erwin Schrödinger. If you place a cat in a sealed box with a quantum-triggered vial of poison, the cat is theoretically considered both alive and dead simultaneously until you open the box to observe (measure) it."
+            }
+        }
+        
+        # --- 2. THE BUY FUNCTION ---
+        def buy_lore(item_name, cost):
+            if st.session_state.coins >= cost:
+                st.session_state.coins -= cost
+                st.session_state.unlocked_lore.append(item_name)
+                st.toast(f"Successfully purchased: {item_name}!", icon="🎉")
+            else:
+                st.toast("Not enough Catty-Coins!", icon="❌")
+
         st.divider()
+        
+        # --- 3. THE UI: SHOP vs LIBRARY ---
+        tab_shop, tab_library = st.tabs(["🛒 The Shop", "📖 My Unlocked Library"])
+        
+        # THE SHOP TAB
+        with tab_shop:
+            st.write(f"### Current Balance: **{st.session_state.coins}** 🐈‍⬛")
+            
+            # Create a grid of 2 columns for the shop items
+            col1, col2 = st.columns(2)
+            
+            # Loop through our database and draw a "card" for each item
+            for idx, (item_name, details) in enumerate(lore_db.items()):
+                # Alternate columns so it looks like a nice grid
+                target_col = col1 if idx % 2 == 0 else col2
+                
+                with target_col:
+                    with st.container(border=True):
+                        st.write(f"#### {details['icon']} {item_name}")
+                        
+                        if item_name in st.session_state.unlocked_lore:
+                            st.success("✅ Already Unlocked")
+                            # Disabled button
+                            st.button("Purchased", key=f"buy_{item_name}", disabled=True, use_container_width=True)
+                        else:
+                            st.write(f"**Cost:** {details['cost']} Catty-Coins")
+                            # The Buy button!
+                            st.button(f"Buy {item_name}", key=f"buy_{item_name}", on_click=buy_lore, args=(item_name, details['cost']), use_container_width=True, type="primary")
 
-        # --- REWARD 1 ---
-        st.subheader("🐈 Schrödinger's Cat (Thought Experiment)")
-        if "cat" in st.session_state.unlocked_rewards:
-            st.success("🔓 Unlocked!")
-            st.write("""
-            **The Concept:** Erwin Schrödinger proposed a scenario where a cat in a box is linked to a quantum event (like a decaying atom). 
-            Because the atom is in a *superposition* of decayed and not-decayed, the cat is simultaneously dead and alive until you open the box to observe it!
-            **Why it matters:** It highlights how bizarre quantum superposition is when applied to everyday, macroscopic objects.
-            """)
-        else:
-            st.write("Cost: 20 🐈‍⬛")
-            if st.button("Unlock Schrödinger's Cat", disabled=st.session_state.coins < 20):
-                st.session_state.coins -= 20
-                st.session_state.unlocked_rewards.add("cat")
-                st.rerun() 
-
-        st.divider()
-
-        # --- REWARD 2 ---
-        st.subheader("🛸 Quantum Teleportation (Real Tech)")
-        if "teleport" in st.session_state.unlocked_rewards:
-            st.success("🔓 Unlocked!")
-            st.write("""
-            **The Concept:** Scientists can't teleport physical matter (like in Star Trek), but using **Entanglement** (what you did in the Boss Level!), 
-            they can instantly teleport the *information* of a quantum state from one location to another, even across the globe.
-            **Why it matters:** This is the foundation of the ultra-secure "Quantum Internet" currently being built.
-            """)
-        else:
-            st.write("Cost: 40 🐈‍⬛")
-            if st.button("Unlock Quantum Teleportation", disabled=st.session_state.coins < 40):
-                st.session_state.coins -= 40
-                st.session_state.unlocked_rewards.add("teleport")
-                st.rerun()
+        # THE LIBRARY TAB
+        with tab_library:
+            st.write("### Your Textbook Excerpts")
+            if len(st.session_state.unlocked_lore) == 0:
+                st.info("Your library is empty! Go beat some challenges to earn coins and buy textbook pages.")
+            else:
+                # Draw a beautiful reading expanding box for every unlocked item
+                for unlocked_item in st.session_state.unlocked_lore:
+                    details = lore_db[unlocked_item]
+                    with st.expander(f"{details['icon']} **{unlocked_item}**", expanded=True):
+                        st.write(details['text'])
 
     # ==========================================
     #               PAGE 3 : TUTORIAL
