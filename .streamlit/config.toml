@@ -1,15 +1,15 @@
 [theme]
-# The main accent color (Soft Neon Genesis Pink/Red)
-primaryColor = "#FF6B8B"
+# A subtle, muted slate-blue for buttons (looks professional, not flashy)
+primaryColor = "#5C7C8A"
 
-# The main background (Deep, dark desaturated plum/magenta)
-backgroundColor = "#3a2230"
+# The main background: A very soft, warm off-white (like your VS Code)
+backgroundColor = "#F8F6F0"
 
-# The sidebar and input boxes (Slightly lighter dark pink-grey)
-secondaryBackgroundColor = "#470d2fc4"
+# The sidebar: A very slightly darker warm-grey/beige to create depth
+secondaryBackgroundColor = "#EFEBE0"
 
-# The text color (A very soft, readable blush-white)
-textColor = "#FFE8EE"
+# Text: Soft dark charcoal (easier on the eyes than pure black)
+textColor = "#3A3836"
 
-# The font style
+# Serif font gives it that authentic, readable physics textbook feel
 font = "serif"
