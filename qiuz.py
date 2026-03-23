@@ -1102,12 +1102,12 @@ else:
                         
                         with tab_probs:
                             st.write("If we measured this circuit 1,000 times, here is the % chance of each result:")
-                            fig_hist = plot_histogram(sv.probabilities_dict(),figsize=(10,4))
+                            fig_hist = plot_histogram(sv.probabilities_dict(),figsize=(10,5))
                             st.pyplot(fig_hist, use_container_width=False)
                             
                         with tab_bloch:
                             st.write("The physical state of each individual qubit represented in 3D space:")
-                            fig_bloch = plot_bloch_multivector(sv)
+                            fig_bloch = plot_bloch_multivector(sv, figsize=(10,5))
                             st.pyplot(fig_bloch, use_container_width=False)
                             
                     except Exception as e:
