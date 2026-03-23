@@ -1427,7 +1427,7 @@ else:
                     },
                     "q_channel": {
                         "icon": "⚛️",
-                        "text": "Alice initializes the quantum link. She decides to send a binary '0', but encoded in the **Hadamard (Diagonal) Basis** so Eve can't easily read it.\n\n**MISSION:** Prepare Qubit 0 in the $|+\\rangle$ state (Equal Superposition).",
+                        "text": "Alice initializes the quantum link. She decides to send a binary '0', but encoded in the **Diagonal Basis** so Eve can't easily read it.\n\n**MISSION:** Prepare Qubit 0 in an equal superposition.",
                         "is_puzzle": True,
                         "qubits": 1,
                         "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]),
@@ -1441,22 +1441,23 @@ else:
                     },
                     "eve_intercepts": {
                         "icon": "🦹‍♀️",
-                        "text": "You successfully transmit the $|+ \\rangle$ state. But midway through the fiber optic cable, **Eve intercepts it!**\n\nEve doesn't know you used the Diagonal basis. She guesses and measures your qubit in the Standard (Z) basis. Because your qubit was in superposition, her measurement forces it to randomly collapse into a $|0\\rangle$ or $|1\\rangle$.\n\nShe then forwards this corrupted qubit to Bob.",
+                        "text": "You transmit the $|+\\rangle$ state. But midway through the cable, **Eve intercepts it!**\n\nEve doesn't know you used the Diagonal basis. She guesses and measures your qubit in the Standard (Z) basis. This forces your superposition to collapse!\n\nShe forwards her corrupted, collapsed qubit to Bob.",
                         "choices": [{"label": "Wait for Bob's Call...", "next_scene": "bob_receives"}]
                     },
                     "bob_receives": {
                         "icon": "📞",
-                        "text": "Bob calls on the secure line.\n\n'Alice, we caught her. I measured the qubit in our agreed diagonal basis, but I got a random result instead of a perfect 0. Someone collapsed the wave function before it reached me. The line is tapped.'\n\nBy comparing notes, Alice and Bob successfully detected Eve's eavesdropping—this is the true power of the BB84 protocol!\n\n**CHAPTER 1 CLEARED!**",
+                        "text": "Bob calls on the secure line.\n\n'Alice, we caught her. I measured the qubit in our agreed diagonal basis, but I got a random result instead of a perfect 0. Someone collapsed the wave function before it reached me.'\n\nBy comparing notes, Alice and Bob successfully detected Eve's eavesdropping!\n\n**CHAPTER 1 CLEARED!**",
                         "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
                         "chapter_clear": True
                     }
                 },
+                
                 "Chapter 2: The Spooky Link (Teleportation)": {
                     "start": {
                         "icon": "✂️",
                         "text": "Eve realized she couldn't break the BB84 cryptography, so she took a simpler approach: she took a pair of scissors and cut the quantum fiber-optic cable between Alice and Bob.\n\n'Great,' Alice sighs. 'I need to send this volatile quantum data to Bob, but I only have a regular, classical telephone line left.'",
                         "choices": [
-                            {"label": "Give up. Quantum data can't travel over standard phones.", "next_scene": "fail_give_up"},
+                            {"label": "Give up. Quantum data can't travel over phones.", "next_scene": "fail_give_up"},
                             {"label": "Initiate Quantum Teleportation.", "next_scene": "entangle_puzzle"}
                         ]
                     },
@@ -1467,11 +1468,11 @@ else:
                     },
                     "entangle_puzzle": {
                         "icon": "🔗",
-                        "text": "To teleport data, Alice and Bob first need to share a pair of entangled qubits (A Bell State). Alice has Qubit 0, and Bob has Qubit 1.\n\n**MISSION:** Entangle the two qubits. Apply a Hadamard to Qubit 0, then use it to Control a NOT gate (CNOT) on Qubit 1.",
+                        "text": "To teleport data, Alice and Bob first need to share a pair of entangled qubits (A Bell State). Alice has Qubit 0, and Bob has Qubit 1.\n\n**PUZZLE 1: Create the Link**\n*Hint: Put one qubit into a state where it is BOTH 0 and 1, and use it to conditionally trigger a flip on the second qubit.*",
                         "is_puzzle": True,
-                        "qubits": 2, # Notice this requires 2 qubits!
+                        "qubits": 2, 
                         "target_state": Statevector([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]),
-                        "success_scene": "teleport_ready",
+                        "success_scene": "teleport_part2",
                         "fail_scene": "wrong_entangle"
                     },
                     "wrong_entangle": {
@@ -1479,11 +1480,40 @@ else:
                         "text": "The qubits fail to sync. 'Alice, my qubit isn't responding to yours,' Bob says.\n\n**MISSION FAILED.**",
                         "choices": [{"label": "Reboot Lasers", "next_scene": "entangle_puzzle"}]
                     },
+                    "teleport_part2": {
+                        "icon": "💾",
+                        "text": "A perfect Bell State is formed! Bob takes his qubit ($q_1$) and drives to his secret base.\n\nAlice now holds her secret data ($q_0$) and her half of the Bell state ($q_1$). To teleport the data, she must 'upload' the secret data into the entangled link.\n\n**PUZZLE 2: The Upload**\n*Hint: Use your data ($q_0$) to Control a flip on your entangled link ($q_1$). Then, obscure the data qubit by throwing it into a diagonal basis!*",
+                        "is_puzzle": True,
+                        "qubits": 2, 
+                        "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2), 0, 0]), # Math for CX(0,1) -> H(0)
+                        "success_scene": "teleport_ready",
+                        "fail_scene": "wrong_upload"
+                    },
+                    "wrong_upload": {
+                        "icon": "❌",
+                        "text": "The data scrambles. The quantum state is lost to the void.\n\n**MISSION FAILED.**",
+                        "choices": [{"label": "Recalibrate the Upload", "next_scene": "teleport_part2"}]
+                    },
                     "teleport_ready": {
                         "icon": "✨",
-                        "text": "A perfect Bell State is formed. Einstein's 'Spooky Action at a Distance' is active.\n\n'Alright Bob,' Alice says. 'I'm going to entangle my secret data with my half of the Bell pair, measure them both, and call you with the classical 1s and 0s. You can use those to reconstruct the data on your end!'\n\n**CHAPTER 2 CLEARED!**",
+                        "text": "The upload is complete! Alice immediately measures both of her qubits, destroying them, and gets two regular, classical numbers (like a `1` and a `0`).\n\nShe picks up the telephone and calls Bob. 'Bob, I got a 1 and a 0.'\n\nBob smiles. He applies an X gate and a Z gate to his qubit based on her numbers. His qubit magically transforms into Alice's exact original data!\n\n**CHAPTER 2 CLEARED!**",
                         "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
                         "chapter_clear": True
+                    }
+                },
+                
+                "Chapter 3: The Data Compression (Superdense Coding)": {
+                    "start": {
+                        "icon": "🗜️",
+                        "text": "Eve is furious. She didn't just cut the cable this time; she installed a firewall that only allows Alice to send **one single qubit** per day.\n\n'Bob, we have a problem,' Alice whispers into the phone. 'I need to send you a 2-bit launch code (like 11 or 01), but I can only physically mail you one qubit.'\n\n'Don't worry, Alice,' Bob replies. 'We still have a Bell State link. It's time to use Superdense Coding.'",
+                        "choices": [
+                            {"label": "Wait, how does 1 qubit carry 2 bits?", "next_scene": "superdense_explain"}
+                        ]
+                    },
+                    "superdense_explain": {
+                        "icon": "🧠",
+                        "text": "(Chapter 3 Puzzle coming soon! This is where Alice will use X and Z gates to alter her half of the Bell state before sending it to Bob!)",
+                        "choices": [{"label": "Back to Start", "next_scene": "start"}]
                     }
                 }
             }    # ... keep your existing Chapter 2 placeholder here
