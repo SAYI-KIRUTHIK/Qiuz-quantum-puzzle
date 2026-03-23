@@ -808,15 +808,33 @@ else:
                 st.write("These challenges are adapted from various textbooks on *Quantum Computation and Circuit Design* by various authors. The examples can added from the suggestions from local communities. The goal is to give players a taste of the classic textbook exercises, but in a more interactive way. Each challenge has a specific target state that you must create using the quantum gates at your disposal. If you can match the target state, you win the challenge.")
                 ch_choice = st.radio("Objectives", list(challenges.keys()), horizontal=True, label_visibility="collapsed")
                 # --- INITIALIZE CHALLENGE CONSTRAINTS ---
-# If they picked a new level, reset the stopwatch and generate new goals
+                # (Your existing code that sets st.session_state.target_time etc. is here)
                 if "current_ch" not in st.session_state or st.session_state.current_ch != ch_choice:
                     st.session_state.current_ch = ch_choice
-                    st.session_state.ch_start_time = time.time() # Start the stopwatch!
+                    st.session_state.ch_start_time = time.time() 
                     
-                    # Randomly assign what kind of challenge this is
                     st.session_state.ch_type = random.choice(["time", "moves", "both"])
                     st.session_state.target_moves = random.randint(2, 5)
-                    st.session_state.target_time = random.randint(10, 25) # Seconds
+                    st.session_state.target_time = random.randint(10, 25)
+                    
+                    # 🌟 NEW: THE START ANIMATION (Toast)
+                    st.toast("Ready? The clock is ticking! 🚀", icon="⏰")
+
+                # 🌟 NEW: THE BOUNTY BOARD (Always visible)
+                with st.container(border=True):
+                    st.markdown("### 🏆 Bonus Goals")
+                    
+                    col_goal1, col_goal2 = st.columns(2)
+                    
+                    if st.session_state.ch_type in ["moves", "both"]:
+                        col_goal1.info(f"🧩 **Moves:** Solve in **{st.session_state.target_moves}** gates or less (+5 Coins)")
+                    else:
+                        col_goal1.write("🧩 *No move limit this time!*")
+                        
+                    if st.session_state.ch_type in ["time", "both"]:
+                        col_goal2.warning(f"⏱️ **Time:** Solve in **{st.session_state.target_time}** seconds or less (+5 Coins)")
+                    else:
+                        col_goal2.write("⏱️ *No time limit this time!*")
                     
                 ch_data = challenges[ch_choice]
                 num_q = ch_data["qubits"]
@@ -1008,14 +1026,21 @@ else:
                                     bonus += 5
                                     
                             # Draw the stars!
+                    # Draw the stars!
                             star_display = "⭐" * stars + "🌑" * (3 - stars)
                             st.success(f"### {star_display} Challenge Cleared!")
                             
+                            # 🌟 NEW: THE VICTORY ANIMATIONS!
+                            if is_new_clear:
+                                if stars == 3:
+                                    st.balloons() # Triggers full-screen balloons for a perfect run!
+                                else:
+                                    st.snow() # Triggers falling snow for a normal clear!
+
                             # 5. PAYOUT THE COINS
                             if is_new_clear:
                                 total_reward = ch_reward + bonus
-                                st.session_state.cleared_levels.add(ch_choice)
-                                st.session_state.coins += total_reward # Actually adds the coins!
+                                # ... (rest of your existing coin logic) ...
                                 
                                 st.toast(f"🎉 Earned {total_reward} Catty-Coins ({ch_reward} base + {bonus} bonus)!", icon="🐈‍⬛")
                                 
