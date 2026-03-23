@@ -1045,12 +1045,6 @@ else:
             c_m1, c_m2, _ = st.columns([1, 1, 2])
             c_m1.button("Apply CNOT (CX)", on_click=add_gate, args=("CX", target_q, ctrl_1))
             c_m2.button("Apply Toffoli (CCX)", on_click=add_gate, args=("CCX", target_q, ctrl_1, ctrl_2))
-
-            c1, c2, c3, c4 = st.columns(4)
-            c1.button("Apply X Gate", on_click=add_gate, args=("X", target_q))
-            c2.button("Apply Y Gate", on_click=add_gate, args=("Y", target_q))
-            c3.button("Apply Z Gate", on_click=add_gate, args=("Z", target_q))
-            c4.button("Apply H Gate", on_click=add_gate, args=("H", target_q))
         with col_save:
             # --- SAVE SYSTEM ---
             # Package our current circuit into a JSON string
