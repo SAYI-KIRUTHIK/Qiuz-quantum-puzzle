@@ -1110,8 +1110,8 @@ else:
                             st.pyplot(fig_bloch, use_container_width=False)
                             
                     except Exception as e:
-                        # If the circuit gets too complex or has incompatible operations, catch the error!
-                        st.error("⚠️ Cannot calculate current state. Make sure you haven't added classical measurements before this step!")
+            # This will print the ACTUAL Python error to the screen
+                        st.error(f"⚠️ Error details: {e}"))
 
 
         
