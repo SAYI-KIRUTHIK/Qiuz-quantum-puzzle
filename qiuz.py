@@ -1414,39 +1414,60 @@ else:
                 "Chapter 1: The Quantum Key (BB84)": {
                     "start": {
                         "icon": "👩‍💻",
-                        "text": "Alice sits at her terminal. 'I need to send a secure key to Bob,' she mutters, 'but Eve is listening on the standard channels.'\n\nWhat should Alice do?",
-                        "choices": [
-                            {"label": "Send it via standard encrypted email.", "next_scene": "fail_email"},
-                            {"label": "Boot up the Quantum Channel.", "next_scene": "q_channel"}
-                        ]
+                        "text": "Alice sits at her terminal. 'I need to send a secure key to Bob, but Eve is tapping the fiber-optic line.'\n\n'Let's test the line,' Alice says. 'I'll just send a standard classical bit and see if Eve notices.'",
+                        "choices": [{"label": "Run Test: Send a Classical 1", "next_scene": "puzzle_classic"}]
                     },
-                    "fail_email": {
-                        "icon": "🚨",
-                        "text": "Alice hits send. Five seconds later, her screen flashes RED. Eve cracked the RSA encryption. The codes are stolen.\n\n**MISSION FAILED.**",
-                        "choices": [{"label": "Rewind Time (Retry)", "next_scene": "start"}]
+                    "puzzle_classic": {
+                        "icon": "1️⃣",
+                        "text": "**MISSION:** Send a standard, classical '1' through the quantum channel to see what Eve does.\n\n*(Hint: Flip Qubit 0 from its default 0 state to a 1 state).* ",
+                        "is_puzzle": True,
+                        "qubits": 1,
+                        "target_state": Statevector([0, 1]), # The math for |1>
+                        "success_scene": "eve_steals_classic",
+                        "fail_scene": "fail_classic"
                     },
-                    "q_channel": {
-                        "icon": "⚛️",
-                        "text": "Alice initializes the quantum link. She decides to send a binary '0', but encoded in the **Diagonal Basis** so Eve can't easily read it.\n\n**MISSION:** Prepare Qubit 0 in an equal superposition.",
+                    "fail_classic": {
+                        "icon": "❌",
+                        "text": "You didn't send a standard 1. Reset the terminal and try again.",
+                        "choices": [{"label": "Retry", "next_scene": "puzzle_classic"}]
+                    },
+                    "eve_steals_classic": {
+                        "icon": "🦹‍♀️",
+                        "text": "You transmit the $|1\\rangle$. Midway through the cable, Eve intercepts it.\n\nEve measures the qubit. Because it's a standard classical 1, her measurement reads '1'. The qubit remains a '1'.\n\nShe quietly passes that exact same '1' down the line to Bob.",
+                        "choices": [{"label": "Switch to Bob's POV", "next_scene": "bob_pov_classic"}]
+                    },
+                    "bob_pov_classic": {
+                        "icon": "👨‍💼",
+                        "text": "**[BOB'S POV]**\nBob's terminal pings. He measures the incoming qubit and gets a '1'. \n\nHe calls Alice. 'I got your 1. Looks clear on my end.'\n\nAlice slams her desk. 'It's NOT clear! Eve read the data and we had absolutely no idea she was there! If we send our passwords this way, she will steal them all without leaving a trace!'",
+                        "choices": [{"label": "Formulate a new plan", "next_scene": "epiphany"}]
+                    },
+                    "epiphany": {
+                        "icon": "💡",
+                        "text": "Alice realizes the problem. 'Classical data is too stable. Eve can look at it without breaking it. I need to send a state that is incredibly fragile. A state that will *shatter* if someone tries to look at it!'\n\n'If I put the qubit into a superposition (BOTH 0 and 1 at the same time), the moment Eve looks at it, quantum physics will force it to collapse. It will leave a fingerprint!'",
+                        "choices": [{"label": "Prepare the Superposition", "next_scene": "puzzle_quantum"}]
+                    },
+                    "puzzle_quantum": {
+                        "icon": "🌊",
+                        "text": "**MISSION:** Use the Hadamard gate to put the Qubit into a fragile, equal superposition ($|+\\rangle$).\n\n*(This is why BB84 works! We are weaponizing the fact that observation destroys quantum states).* ",
                         "is_puzzle": True,
                         "qubits": 1,
                         "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]),
-                        "success_scene": "eve_intercepts",
-                        "fail_scene": "wrong_state"
+                        "success_scene": "eve_breaks_quantum",
+                        "fail_scene": "fail_quantum"
                     },
-                    "wrong_state": {
+                    "fail_quantum": {
                         "icon": "❌",
-                        "text": "Bob calls. 'Alice, I measured the qubit in the diagonal basis, but I got a 1. Did you send the wrong state?'\n\nEve chuckles in the background. **MISSION FAILED.**",
-                        "choices": [{"label": "Recalibrate Qubit", "next_scene": "q_channel"}]
+                        "text": "That's not an equal superposition. Try the Hadamard gate.",
+                        "choices": [{"label": "Retry", "next_scene": "puzzle_quantum"}]
                     },
-                    "eve_intercepts": {
+                    "eve_breaks_quantum": {
                         "icon": "🦹‍♀️",
-                        "text": "You transmit the $|+\\rangle$ state. But midway through the cable, **Eve intercepts it!**\n\nEve doesn't know you used the Diagonal basis. She guesses and measures your qubit in the Standard (Z) basis. This forces your superposition to collapse!\n\nShe forwards her corrupted, collapsed qubit to Bob.",
-                        "choices": [{"label": "Wait for Bob's Call...", "next_scene": "bob_receives"}]
+                        "text": "You transmit the fragile $|+\\rangle$ superposition. \n\nEve intercepts it! She tries to read it like a normal 1 or 0 (using the Z-basis). \n\n**CRACK.** The superposition collapses! The laws of physics force the qubit to randomly pick 0 or 1. Eve gets a random number, and forwards this broken, collapsed qubit to Bob.",
+                        "choices": [{"label": "Switch to Bob's POV", "next_scene": "bob_pov_quantum"}]
                     },
-                    "bob_receives": {
-                        "icon": "📞",
-                        "text": "Bob calls on the secure line.\n\n'Alice, we caught her. I measured the qubit in our agreed diagonal basis, but I got a random result instead of a perfect 0. Someone collapsed the wave function before it reached me.'\n\nBy comparing notes, Alice and Bob successfully detected Eve's eavesdropping!\n\n**CHAPTER 1 CLEARED!**",
+                    "bob_pov_quantum": {
+                        "icon": "👨‍💼",
+                        "text": "**[BOB'S POV]**\nBob receives the qubit. He measures it expecting the specific $|+\\rangle$ wave Alice sent, but instead, he gets random noise.\n\nHe calls Alice. 'Alice, the wave function collapsed before it reached me. Someone is tapping the line.'\n\nEve is caught. The password is safe.\n\n**CHAPTER 1 CLEARED!**",
                         "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
                         "chapter_clear": True
                     }
@@ -1455,48 +1476,47 @@ else:
                 "Chapter 2: The Spooky Link (Teleportation)": {
                     "start": {
                         "icon": "✂️",
-                        "text": "Eve realized she couldn't break the BB84 cryptography, so she took a simpler approach: she took a pair of scissors and cut the quantum fiber-optic cable between Alice and Bob.\n\n'Great,' Alice sighs. 'I need to send this volatile quantum data to Bob, but I only have a regular, classical telephone line left.'",
+                        "text": "Eve couldn't crack the BB84 protocol, so she took a pair of scissors and physically cut the quantum fiber-optic cable.\n\nAlice sighs. 'I need to send highly volatile quantum data to Bob, but I only have a regular, classical telephone line left.'",
                         "choices": [
-                            {"label": "Give up. Quantum data can't travel over phones.", "next_scene": "fail_give_up"},
                             {"label": "Initiate Quantum Teleportation.", "next_scene": "entangle_puzzle"}
                         ]
                     },
-                    "fail_give_up": {
-                        "icon": "💀",
-                        "text": "Alice goes home. The data is never sent. The world ends.\n\n**MISSION FAILED.**",
-                        "choices": [{"label": "Rewind Time", "next_scene": "start"}]
-                    },
                     "entangle_puzzle": {
                         "icon": "🔗",
-                        "text": "To teleport data, Alice and Bob first need to share a pair of entangled qubits (A Bell State). Alice has Qubit 0, and Bob has Qubit 1.\n\n**PUZZLE 1: Create the Link**\n*Hint: Put one qubit into a state where it is BOTH 0 and 1, and use it to conditionally trigger a flip on the second qubit.*",
+                        "text": "To teleport data, Alice and Bob first need to share a pair of entangled qubits (A Bell State). Alice has Qubit 0, and Bob has Qubit 1.\n\n**PUZZLE 1: Create the Link**\n*Hint: Put one qubit into a superposition, and use it to conditionally trigger a flip on the second qubit.*",
                         "is_puzzle": True,
                         "qubits": 2, 
                         "target_state": Statevector([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]),
-                        "success_scene": "teleport_part2",
+                        "success_scene": "teleport_explain",
                         "fail_scene": "wrong_entangle"
                     },
                     "wrong_entangle": {
                         "icon": "❌",
-                        "text": "The qubits fail to sync. 'Alice, my qubit isn't responding to yours,' Bob says.\n\n**MISSION FAILED.**",
-                        "choices": [{"label": "Reboot Lasers", "next_scene": "entangle_puzzle"}]
+                        "text": "The qubits fail to sync. 'Alice, my qubit isn't responding to yours,' Bob says.",
+                        "choices": [{"label": "Retry", "next_scene": "entangle_puzzle"}]
+                    },
+                    "teleport_explain": {
+                        "icon": "🧠",
+                        "text": "A perfect Bell State is formed! Bob takes his qubit ($q_1$) and drives to his secret base.\n\nAlice now holds her secret data ($q_0$) and her half of the Bell state ($q_1$). \n\n'If I just measure my data to tell Bob what it is, I'll destroy it,' Alice thinks. 'Instead, I need to **entangle my data with the link**, and then **measure the link itself**. That way, I destroy my qubits, but the data magically slides over to Bob's qubit!'",
+                        "choices": [{"label": "Perform the Upload", "next_scene": "teleport_part2"}]
                     },
                     "teleport_part2": {
                         "icon": "💾",
-                        "text": "A perfect Bell State is formed! Bob takes his qubit ($q_1$) and drives to his secret base.\n\nAlice now holds her secret data ($q_0$) and her half of the Bell state ($q_1$). To teleport the data, she must 'upload' the secret data into the entangled link.\n\n**PUZZLE 2: The Upload**\n*Hint: Use your data ($q_0$) to Control a flip on your entangled link ($q_1$). Then, obscure the data qubit by throwing it into a diagonal basis!*",
+                        "text": "**PUZZLE 2: The Upload**\n1. Use your data ($q_0$) to Control a flip (CX) on your link ($q_1$). This 'smashes' the data into the link.\n2. Apply a Hadamard (H) to your data ($q_0$). This scrambles it, hiding the actual secret so measuring it won't destroy the information!",
                         "is_puzzle": True,
                         "qubits": 2, 
-                        "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2), 0, 0]), # Math for CX(0,1) -> H(0)
-                        "success_scene": "teleport_ready",
+                        "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2), 0, 0]), 
+                        "success_scene": "bob_pov_teleport",
                         "fail_scene": "wrong_upload"
                     },
                     "wrong_upload": {
                         "icon": "❌",
-                        "text": "The data scrambles. The quantum state is lost to the void.\n\n**MISSION FAILED.**",
-                        "choices": [{"label": "Recalibrate the Upload", "next_scene": "teleport_part2"}]
+                        "text": "The data scrambles. The quantum state is lost to the void.",
+                        "choices": [{"label": "Retry", "next_scene": "teleport_part2"}]
                     },
-                    "teleport_ready": {
-                        "icon": "✨",
-                        "text": "The upload is complete! Alice immediately measures both of her qubits, destroying them, and gets two regular, classical numbers (like a `1` and a `0`).\n\nShe picks up the telephone and calls Bob. 'Bob, I got a 1 and a 0.'\n\nBob smiles. He applies an X gate and a Z gate to his qubit based on her numbers. His qubit magically transforms into Alice's exact original data!\n\n**CHAPTER 2 CLEARED!**",
+                    "bob_pov_teleport": {
+                        "icon": "👨‍💼",
+                        "text": "**[BOB'S POV]**\nAlice measures her two qubits and calls Bob on a regular telephone.\n\n'Bob, my measurements destroyed my qubits. I got classical bits 1 and 0.'\n\nBob looks at his single entangled qubit. 'Understood.' Based on her classical numbers, Bob applies a quick X and Z gate to his qubit. \n\nInstantly, Bob's qubit transforms into the exact quantum state Alice was trying to send. The Teleportation is complete!\n\n**CHAPTER 2 CLEARED!**",
                         "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
                         "chapter_clear": True
                     }
@@ -1505,14 +1525,7 @@ else:
                 "Chapter 3: The Data Compression (Superdense Coding)": {
                     "start": {
                         "icon": "🗜️",
-                        "text": "Eve is furious. She didn't just cut the cable this time; she installed a firewall that only allows Alice to send **one single qubit** per day.\n\n'Bob, we have a problem,' Alice whispers into the phone. 'I need to send you a 2-bit launch code (like 11 or 01), but I can only physically mail you one qubit.'\n\n'Don't worry, Alice,' Bob replies. 'We still have a Bell State link. It's time to use Superdense Coding.'",
-                        "choices": [
-                            {"label": "Wait, how does 1 qubit carry 2 bits?", "next_scene": "superdense_explain"}
-                        ]
-                    },
-                    "superdense_explain": {
-                        "icon": "🧠",
-                        "text": "(Chapter 3 Puzzle coming soon! This is where Alice will use X and Z gates to alter her half of the Bell state before sending it to Bob!)",
+                        "text": "Chapter 3 under construction! Alice will soon send 2 bits of data using only 1 qubit!",
                         "choices": [{"label": "Back to Start", "next_scene": "start"}]
                     }
                 }
