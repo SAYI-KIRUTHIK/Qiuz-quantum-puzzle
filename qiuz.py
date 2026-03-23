@@ -259,13 +259,13 @@ else:
         st.write(f"### {level_name}")
         st.info(level_data["initial_state"])
         st.info(level_data["goal_text"])
-        st.write("### Apply Your Gates:")
+        
 
-        col_main,col_gates = st.columns([3,2])
+        col_main,col_gates = st.columns([8,3])
         with col_gates:        # --- THE CIRCUIT VISUALIZER ---
                 with st.container(border=True):
 
-                    with st.expander("🛠️ Available Quantum Gates", expanded=True):
+                        st.write("### Apply Your Gates:")
                 
                 # This loop automatically builds a row for however many qubits the challenge has!
                         for i in range(num_qubits):
