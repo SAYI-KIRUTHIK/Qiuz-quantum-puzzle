@@ -257,10 +257,7 @@ else:
 
 
         st.write(f"### {level_name}")
-        st.info(level_data["initial_state"])
-        st.info(level_data["goal_text"])
-        
-
+        st.info(level_data["initial_state"],'\n', level_data["goal_text"], icon="ℹ️")
         col_main,col_gates = st.columns([8,3])
         with col_gates:        # --- THE CIRCUIT VISUALIZER ---
                 with st.container(border=True):
