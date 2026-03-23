@@ -1111,7 +1111,7 @@ else:
                             
                     except Exception as e:
             # This will print the ACTUAL Python error to the screen
-                        st.error(f"⚠️ Error details: {e}"))
+                        st.error(f"⚠️ Error details: {e}")
 
 
         
