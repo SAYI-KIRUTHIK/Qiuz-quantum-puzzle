@@ -975,31 +975,26 @@ else:
                         else:
                             st.error("❌ Vector Mismatch. Try again.")
 
-# ==========================================
-# 1. INITIALIZE SANDBOX MEMORY
-#  ==========================================
 
-
-            # ==========================================
-            # 2. FAST CALLBACK FUNCTIONS
-            # ==========================================
-
-
-# ==========================================
-# 3. THE SANDBOX UI
-# ==========================================
     if current_page == "🧘‍♀️ Sandbox Mode":
         if "sb_qubits" not in st.session_state:
             st.session_state.sb_qubits = 3 # Default to 3 qubits
         if "sb_circuit_logic" not in st.session_state:
             st.session_state.sb_circuit_logic = [] # Stores our gates like [("H", 0), ("X", 1)]
         st.header("🧘‍♀️ Sandbox Mode: Free Play")
-        def add_gate(gate, target, control=None):
-            """Quickly adds a gate to the memory without double-loading."""
-            if control is None:
-                st.session_state.sb_circuit_logic.append({"gate": gate, "target": target})
-            else:
-                st.session_state.sb_circuit_logic.append({"gate": gate, "target": target, "control": control})
+        def add_gate(gate, target, control1=None, control2=None):
+            """Adds a gate to memory, with built-in quantum physics safety checks."""
+            if control1 == target or control2 == target or (control1 == control2 and control1 is not None):
+                st.toast("⚠️ Error: Control and Target qubits must all be different!", icon="🚨")
+                return
+        
+            instruction = {"gate": gate, "target": target}
+            if control1 is not None:
+                instruction["control1"] = control1
+            if control2 is not None:
+                instruction["control2"] = control2
+        
+            st.session_state.sb_circuit_logic.append(instruction)
 
         def clear_sandbox():
             st.session_state.sb_circuit_logic = []
@@ -1020,11 +1015,36 @@ else:
             st.session_state.sb_qubits = st.slider("Select Number of Qubits", min_value=1, max_value=5, value=st.session_state.sb_qubits)
             if st.button("🗑️ Clear Circuit", on_click=clear_sandbox):
                 pass
-            st.write("### Toolbox")
-            # Example: Adding an X Gate to Qubit 0
-            # In a real app, you might want a drop-down to select the target qubit first, 
-            # then click the gate button.
-            target_q = st.selectbox("Target Qubit:", range(st.session_state.sb_qubits))
+                    # ==========================================
+            # 5. THE ADVANCED GATE TOOLBOX
+            # ==========================================
+            st.write("### 🧰 Quantum Toolbox")
+
+            # Create three selectors for our wiring
+            col_tar, col_c1, col_c2 = st.columns(3)
+            with col_tar:
+                target_q = st.selectbox("🎯 Target Qubit:", range(st.session_state.sb_qubits), index=0)
+            with col_c1:
+                default_c1 = 1 if st.session_state.sb_qubits > 1 else 0
+                ctrl_1 = st.selectbox("🔗 Control 1 (for CNOT/CCNOT):", range(st.session_state.sb_qubits), index=default_c1)
+            with col_c2:
+                default_c2 = 2 if st.session_state.sb_qubits > 2 else 0
+                ctrl_2 = st.selectbox("🔗 Control 2 (for CCNOT):", range(st.session_state.sb_qubits), index=default_c2)
+
+            st.divider()
+
+            st.write("**Standard Gates (Applies to Target Qubit)**")
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.button("Apply X", on_click=add_gate, args=("X", target_q))
+            c2.button("Apply Y", on_click=add_gate, args=("Y", target_q))
+            c3.button("Apply Z", on_click=add_gate, args=("Z", target_q))
+            c4.button("Apply H", on_click=add_gate, args=("H", target_q))
+            c5.button("Measure", on_click=add_gate, args=("M", target_q), type="primary")
+
+            st.write("**Entanglement Gates**")
+            c_m1, c_m2, _ = st.columns([1, 1, 2])
+            c_m1.button("Apply CNOT (CX)", on_click=add_gate, args=("CX", target_q, ctrl_1))
+            c_m2.button("Apply Toffoli (CCX)", on_click=add_gate, args=("CCX", target_q, ctrl_1, ctrl_2))
 
             c1, c2, c3, c4 = st.columns(4)
             c1.button("Apply X Gate", on_click=add_gate, args=("X", target_q))
@@ -1058,19 +1078,30 @@ else:
         # 4. BUILD AND DRAW THE CIRCUIT
         # ==========================================
         # We rebuild the Qiskit circuit fresh every time based on the saved logic
-        qc = QuantumCircuit(st.session_state.sb_qubits)
+        qc = QuantumCircuit(st.session_state.sb_qubits, st.session_state.sb_qubits)
+
+     # Track if the user added any measurements
+        has_measurements = False
 
         for instruction in st.session_state.sb_circuit_logic:
             g = instruction["gate"]
             t = instruction["target"]
-            c = instruction.get("control", None)
+            c1 = instruction.get("control1", None)
+            c2 = instruction.get("control2", None)
             
             # Apply the gates to the Qiskit object
             if g == "X": qc.x(t)
             elif g == "Y": qc.y(t)
             elif g == "Z": qc.z(t)
             elif g == "H": qc.h(t)
-            elif g == "CX" and c is not None: qc.cx(c, t)
+            elif g == "M": 
+                qc.measure(t, t) 
+                has_measurements = True
+            # The New Entanglement Gates!
+            elif g == "CX" and c1 is not None: 
+                qc.cx(c1, t)
+            elif g == "CCX" and c1 is not None and c2 is not None:
+                qc.ccx(c1, c2, t)
 
         # Draw it! (Assuming you are using matplotlib for visuals)
         with st.container(border=True):
