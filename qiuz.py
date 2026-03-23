@@ -993,6 +993,7 @@ else:
                         current_sv = Statevector(qc)
                         st.write("### 🔍 Results")
                         st.write("**Your Resulting State Vector:**")
+                        st.code(np.round(current_sv.data, 3))
                         
                         # ... (Keep your math_string / LaTeX drawing here if you have it) ...
 
