@@ -1006,7 +1006,7 @@ else:
 # 3. THE SANDBOX UI
 # ==========================================
     
-            st.header("🧘‍♀️ Sandbox Mode: Free Play")
+            st.header("🧘‍♀️ Sandbox Mode")
 
             # Top Control Panel
             col_controls, col_save = st.columns([2, 1])
