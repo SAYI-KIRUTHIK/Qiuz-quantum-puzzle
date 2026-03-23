@@ -88,34 +88,7 @@ if not st.session_state.logged_in:
 #        2. THE MAIN GAME
 # ==========================================
 else:
-    # --- The User is Logged In! ---
-    st.sidebar.title("Game Status")
-    st.sidebar.success(f"👤 Playing as: {st.session_state.username}")    
-    # The Log Out Button
-
-    st.sidebar.metric(label="Catty-Coins", value=f"{st.session_state.coins} 🐈‍⬛")
-
-    TOTAL_CHALLENGES = 11 
-    cleared_count = len(st.session_state.cleared_levels)
-
-    # Calculate percentage (and ensure it never breaks 100% if you add secret levels!)
-    progress_pct = min(cleared_count / TOTAL_CHALLENGES, 1.0)
-    st.sidebar.progress(
-        progress_pct, 
-        text=f"🏆 Campaign Progress: {cleared_count} / {TOTAL_CHALLENGES}"
-    )
-    if st.sidebar.button("Save & Log Out"):
-        # Save their current coins to the database before they leave
-        supabase.table("profiles").update({"coins": st.session_state.coins}).eq("username", st.session_state.username).execute()
-        
-        # Wipe the session state so the next person doesn't see their game
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()    
-    st.sidebar.divider()
-
-
-    # --- YOUR ENTIRE GAME CODE GOES HERE ---
+        # --- YOUR ENTIRE GAME CODE GOES HERE ---
     history_idx = 0
     if "unlocked_lore" not in st.session_state:
         st.session_state.unlocked_lore = [] # Tracks the names of purchased textbook pages
@@ -132,6 +105,79 @@ else:
         st.session_state.history = []
     if "history_idx" not in st.session_state:
         st.session_state.history_idx = 0
+        # ... (your other session states) ...
+    if "coins" not in st.session_state:
+        st.session_state.coins = 0
+    # ... (your other session states) ...
+
+    # ==========================================
+    # 💾 DATABASE FUNCTIONS (Paste them here!)
+    # ==========================================
+    def save_player_data():
+        """Packages the session state and sends it to the database."""
+        # 1. Gather the current data
+        current_coins = st.session_state.coins
+        levels_list = list(st.session_state.cleared_levels) # Convert Set to List
+        lore_list = st.session_state.unlocked_lore
+        username = st.session_state.username # Or however you track the logged-in user
+        
+        try:
+            # 2. Send it to the Database! 
+            # (This example uses Supabase syntax, adjust slightly if using Firebase/SQLite)
+            supabase.table("users").update({
+                "coins": current_coins,
+                "cleared_levels": levels_list,
+                "unlocked_lore": lore_list
+            }).eq("username", username).execute()
+            
+            st.toast("Progress Saved Successfully!", icon="💾")
+        except Exception as e:
+            st.error(f"Failed to save progress: {e}")
+
+    def load_player_data(username):
+        """Fetches data from the database and loads it into the game memory."""
+        try:
+            # 1. Fetch from Database
+            response = supabase.table("users").select("coins, cleared_levels, unlocked_lore").eq("username", username).execute()
+            user_data = response.data[0]
+            
+            # 2. Inject into Session State
+            st.session_state.coins = user_data.get("coins", 0)
+            
+            # Convert the saved list back into a Python Set for the game logic
+            saved_levels = user_data.get("cleared_levels", [])
+            st.session_state.cleared_levels = set(saved_levels) if saved_levels else set()
+            
+            saved_lore = user_data.get("unlocked_lore", [])
+            st.session_state.unlocked_lore = saved_lore if saved_lore else []
+            
+        except Exception as e:
+            st.error(f"Failed to load player data: {e}")
+    # --- The User is Logged In! ---
+    with st.sidebar:
+        st.success(f"👤 Playing as: {st.session_state.username}")
+        
+        st.write(f"**Catty-Coins:** {st.session_state.coins} 🐈‍⬛")
+        TOTAL_CHALLENGES = 11 
+        cleared_count = len(st.session_state.cleared_levels)
+
+        # Calculate percentage (and ensure it never breaks 100% if you add secret levels!)
+        progress_pct = min(cleared_count / TOTAL_CHALLENGES, 1.0)
+        st.sidebar.progress(
+            progress_pct, 
+            text=f"🏆 Campaign Progress: {cleared_count} / {TOTAL_CHALLENGES}"
+        )
+        if st.button("Save & Log Out"):
+            save_player_data() # <--- 1. Save to database first!
+            
+            # 2. Then clear the session to log them out
+            st.session_state.clear() 
+            st.rerun()      
+        st.sidebar.divider()
+
+
+
+
 
 
     st.title("Qiuz: A Quantum Puzzle 🧩")
