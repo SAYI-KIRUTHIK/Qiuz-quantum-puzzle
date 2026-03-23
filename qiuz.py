@@ -86,19 +86,29 @@ if not st.session_state.logged_in:
 # ==========================================
 else:
     # --- The User is Logged In! ---
-    
+    st.sidebar.title("Game Status")
     st.sidebar.success(f"👤 Playing as: {st.session_state.username}")    
     # The Log Out Button
     if st.sidebar.button("Save & Log Out"):
         # Save their current coins to the database before they leave
         supabase.table("profiles").update({"coins": st.session_state.coins}).eq("username", st.session_state.username).execute()
-        
+    
+    st.sidebar.metric(label="Catty-Coins", value=f"{st.session_state.coins} 🐈‍⬛")
+
+    TOTAL_CHALLENGES = 11 
+    cleared_count = len(st.session_state.cleared_levels)
+
+    # Calculate percentage (and ensure it never breaks 100% if you add secret levels!)
+    progress_pct = min(cleared_count / TOTAL_CHALLENGES, 1.0)
+    st.sidebar.progress(
+        progress_pct, 
+        text=f"🏆 Campaign Progress: {cleared_count} / {TOTAL_CHALLENGES}"
+    )
+    st.sidebar.divider()        
         # Wipe the session state so the next person doesn't see their game
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
-
-    st.sidebar.divider()
 
     # --- YOUR ENTIRE GAME CODE GOES HERE ---
     history_idx = 0
@@ -125,19 +135,7 @@ else:
 
 
     # Sidebar
-    st.sidebar.title("Game Status")
-    st.sidebar.metric(label="Catty-Coins", value=f"{st.session_state.coins} 🐈‍⬛")
 
-    TOTAL_CHALLENGES = 11 
-    cleared_count = len(st.session_state.cleared_levels)
-
-    # Calculate percentage (and ensure it never breaks 100% if you add secret levels!)
-    progress_pct = min(cleared_count / TOTAL_CHALLENGES, 1.0)
-    st.sidebar.progress(
-        progress_pct, 
-        text=f"🏆 Campaign Progress: {cleared_count} / {TOTAL_CHALLENGES}"
-    )
-    st.sidebar.divider()
         
     st.sidebar.subheader("Navigation")
     current_page = st.sidebar.radio("", ["📖 Interactive Tutorials","🎮 Play Challenge", "🏪 Quantum Shop", "📖 How to Play","🎲 symbols sheets","🌀 Readme-Gates"])
