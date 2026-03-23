@@ -1422,7 +1422,7 @@ else:
                         "text": "**MISSION:** Send a standard, classical '1' through the quantum channel to see what Eve does.\n\n*(Hint: Flip Qubit 0 from its default 0 state to a 1 state).* ",
                         "is_puzzle": True,
                         "qubits": 1,
-                        "target_state": Statevector([0, 1]), # The math for |1>
+                        "target_state": Statevector([0, 1]), 
                         "success_scene": "eve_steals_classic",
                         "fail_scene": "fail_classic"
                     },
@@ -1433,22 +1433,22 @@ else:
                     },
                     "eve_steals_classic": {
                         "icon": "🦹‍♀️",
-                        "text": "You transmit the $|1\\rangle$. Midway through the cable, Eve intercepts it.\n\nEve measures the qubit. Because it's a standard classical 1, her measurement reads '1'. The qubit remains a '1'.\n\nShe quietly passes that exact same '1' down the line to Bob.",
+                        "text": "You transmit the $|1\\rangle$. Midway through the cable, Eve intercepts it.\n\nEve measures the qubit. Because it's a standard classical 1, her measurement reads '1'. She quietly passes that exact same '1' down the line to Bob without leaving a trace.",
                         "choices": [{"label": "Switch to Bob's POV", "next_scene": "bob_pov_classic"}]
                     },
                     "bob_pov_classic": {
                         "icon": "👨‍💼",
-                        "text": "**[BOB'S POV]**\nBob's terminal pings. He measures the incoming qubit and gets a '1'. \n\nHe calls Alice. 'I got your 1. Looks clear on my end.'\n\nAlice slams her desk. 'It's NOT clear! Eve read the data and we had absolutely no idea she was there! If we send our passwords this way, she will steal them all without leaving a trace!'",
+                        "text": "**[BOB'S POV]**\nBob's terminal pings. He measures the incoming qubit and gets a '1'. \n\nHe calls Alice. 'I got your 1. Looks clear on my end.'\n\nAlice slams her desk. 'It's NOT clear! Eve read the data and we had absolutely no idea she was there! If we send our passwords this way, she will steal them all!'",
                         "choices": [{"label": "Formulate a new plan", "next_scene": "epiphany"}]
                     },
                     "epiphany": {
                         "icon": "💡",
-                        "text": "Alice realizes the problem. 'Classical data is too stable. Eve can look at it without breaking it. I need to send a state that is incredibly fragile. A state that will *shatter* if someone tries to look at it!'\n\n'If I put the qubit into a superposition (BOTH 0 and 1 at the same time), the moment Eve looks at it, quantum physics will force it to collapse. It will leave a fingerprint!'",
+                        "text": "Alice realizes the problem. 'Classical data is too stable. I need to send a state that is incredibly fragile. A state that will *shatter* if someone tries to look at it!'\n\n'If I put the qubit into a superposition, the moment Eve looks at it, quantum physics will force it to collapse. It will leave a fingerprint!'",
                         "choices": [{"label": "Prepare the Superposition", "next_scene": "puzzle_quantum"}]
                     },
                     "puzzle_quantum": {
                         "icon": "🌊",
-                        "text": "**MISSION:** Use the Hadamard gate to put the Qubit into a fragile, equal superposition ($|+\\rangle$).\n\n*(This is why BB84 works! We are weaponizing the fact that observation destroys quantum states).* ",
+                        "text": "**MISSION:** Use the Hadamard gate to put the Qubit into a fragile, equal superposition ($|+\\rangle$).",
                         "is_puzzle": True,
                         "qubits": 1,
                         "target_state": Statevector([1/np.sqrt(2), 1/np.sqrt(2)]),
@@ -1462,7 +1462,7 @@ else:
                     },
                     "eve_breaks_quantum": {
                         "icon": "🦹‍♀️",
-                        "text": "You transmit the fragile $|+\\rangle$ superposition. \n\nEve intercepts it! She tries to read it like a normal 1 or 0 (using the Z-basis). \n\n**CRACK.** The superposition collapses! The laws of physics force the qubit to randomly pick 0 or 1. Eve gets a random number, and forwards this broken, collapsed qubit to Bob.",
+                        "text": "You transmit the fragile $|+\\rangle$ superposition. \n\nEve intercepts it! She tries to read it like a normal 1 or 0. \n\n**CRACK.** The superposition collapses! The laws of physics force the qubit to randomly pick 0 or 1. Eve forwards this broken qubit to Bob.",
                         "choices": [{"label": "Switch to Bob's POV", "next_scene": "bob_pov_quantum"}]
                     },
                     "bob_pov_quantum": {
@@ -1525,8 +1525,36 @@ else:
                 "Chapter 3: The Data Compression (Superdense Coding)": {
                     "start": {
                         "icon": "🗜️",
-                        "text": "Chapter 3 under construction! Alice will soon send 2 bits of data using only 1 qubit!",
-                        "choices": [{"label": "Back to Start", "next_scene": "start"}]
+                        "text": "Eve is furious. She didn't just cut the cable this time; she installed a firewall that only allows Alice to send **one single qubit** per day.\n\n'Bob, we have a problem,' Alice whispers into the phone. 'I need to send you a 2-bit launch code (11), but I can only physically mail you one qubit.'\n\n'Don't worry, Alice,' Bob replies. 'We still have a Bell State link. It's time to use Superdense Coding.'",
+                        "choices": [
+                            {"label": "Wait, how does 1 qubit carry 2 bits?", "next_scene": "superdense_explain"}
+                        ]
+                    },
+                    "superdense_explain": {
+                        "icon": "🧠",
+                        "text": "Because Qubit 0 and Qubit 1 are perfectly entangled, whatever Alice does to her qubit ($q_0$) mathematically alters the overall system.\n\nBy applying an **X gate**, Alice can flip the first bit of the message. By applying a **Z gate**, she can flip the second bit. Then, she mails her single altered qubit to Bob!",
+                        "choices": [{"label": "Encode the Message", "next_scene": "puzzle_superdense"}]
+                    },
+                    "puzzle_superdense": {
+                        "icon": "🔐",
+                        "text": "**MISSION: Send the code '11'.**\n1. Rebuild the Bell State link (H on $q_0$, CX $q_0 \\rightarrow q_1$).\n2. Apply an **X gate** to your qubit ($q_0$) to encode the first '1'.\n3. Apply a **Z gate** to your qubit ($q_0$) to encode the second '1'.\n4. Hit Transmit to mail your $q_0$ to Bob!",
+                        "is_puzzle": True,
+                        "qubits": 2,
+                        # The exact resulting statevector after H(0), CX(0,1), X(0), Z(0)
+                        "target_state": Statevector([0, -1/np.sqrt(2), 1/np.sqrt(2), 0]),
+                        "success_scene": "bob_pov_superdense",
+                        "fail_scene": "wrong_superdense"
+                    },
+                    "wrong_superdense": {
+                        "icon": "❌",
+                        "text": "Bob decodes the message, but it reads '00'. The launch is aborted.\n\n**MISSION FAILED.**",
+                        "choices": [{"label": "Recalibrate Encoding", "next_scene": "puzzle_superdense"}]
+                    },
+                    "bob_pov_superdense": {
+                        "icon": "👨‍💼",
+                        "text": "**[BOB'S POV]**\nBob receives Alice's single qubit in the mail. He now holds both halves of the entangled pair.\n\nHe applies a CX gate and an H gate to the pair to decode them. When he measures them, the screen flashes: **11**.\n\nAlice successfully sent two classical bits of data by only transmitting one physical qubit. The laws of classical physics have been broken.\n\n**CAMPAIGN CLEARED! YOU ARE A QUANTUM MASTER!**",
+                        "choices": [{"label": "Return to Main Menu", "next_scene": "start"}],
+                        "chapter_clear": True
                     }
                 }
             }    # ... keep your existing Chapter 2 placeholder here
