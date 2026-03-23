@@ -34,9 +34,7 @@ if not st.session_state.logged_in:
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.title("🧩 Qiuz: Login")
-        st.write("Welcome to the Quantum Realm. No email required.")
-        
+        st.title("🧩 Qiuz: Login")      
         with st.form("login_form"):
             username = st.text_input("Username", placeholder="e.g., QuantumKid99")
             password = st.text_input("Password", type="password")
@@ -116,7 +114,7 @@ else:
     history_idx = 0
 # Initialize our Game Economy Memory
     if "coins" not in st.session_state:
-        st.session_state.coins = 0
+        st.session_state.coins = supabase.table("profiles").select("coins").eq("username", st.session_state.username).execute().data[0]["coins"]
     if "cleared_levels" not in st.session_state:
         st.session_state.cleared_levels = set() # Keeps track of beaten levels
     if "unlocked_rewards" not in st.session_state:
