@@ -152,7 +152,14 @@ else:
     if "coins" not in st.session_state:
         st.session_state.coins = 0
     # ... (your other session states) ...
-
+    # --- STORY ENGINE MEMORY ---
+    if "unlocked_chapters" not in st.session_state:
+        # They start with only Chapter 1 unlocked
+        st.session_state.unlocked_chapters = ["Chapter 1: The Quantum Key (BB84)"] 
+    if "active_chapter" not in st.session_state:
+        st.session_state.active_chapter = "Chapter 1: The Quantum Key (BB84)"
+    if "current_scene" not in st.session_state:
+        st.session_state.current_scene = "start"
 
     # --- The User is Logged In! ---
     with st.sidebar:
@@ -192,7 +199,7 @@ else:
 
         
     st.sidebar.subheader("Navigation")
-    current_page = st.sidebar.radio("", ["🧘‍♀️ Sandbox Mode","📖 Interactive Tutorials","🎮 Play Challenge", "🏪 Quantum Shop", "📖 How to Play","🎲 symbols sheets","🌀 Readme-Gates"])
+    current_page = st.sidebar.radio("", ["🧘‍♀️ Sandbox Mode","📖 Interactive Tutorials","🎮 Play Challenge", "🕵️‍♀️ Story Mode","🏪 Quantum Shop", "📖 How to Play","🎲 symbols sheets","🌀 Readme-Gates"])
 
 
 
@@ -397,7 +404,7 @@ else:
     # ==========================================
     #               PAGE 2: THE SHOP
     # ==========================================
-    if current_page == "🏪 Quantum Shop":
+    elif current_page == "🏪 Quantum Shop":
         st.header("🏪 The Quantum Shop")
         st.write("Every loves lore, here take some good ones in  exchange of catty-coins 🐈‍⬛")
         
@@ -480,7 +487,7 @@ else:
     #               PAGE 3 : TUTORIAL
     # ==========================================
 
-    if current_page == "📖 How to Play":
+    elif current_page == "📖 How to Play":
         st.header("📖 How to Play: A Beginner's Guide")
         st.write("Welcome to Qiuz! (ki-sz) If you are new to quantum mechanics, don't worry. This guide will show you exactly how to operate the game.")
         
@@ -541,7 +548,7 @@ else:
     #               PAGE 4 : GATES
     # ==========================================
 
-    if current_page == "🌀 Readme-Gates":
+    elif current_page == "🌀 Readme-Gates":
         st.header("🌀 Quantum Gates")
         st.write("Before we build circuits, we need to understand what we are actually building them with.")
         
@@ -804,7 +811,7 @@ else:
             st.warning("🔒 **LOCKED:** ' Level 5' to unlock the Toffoli Gate!")
         st.divider()
 
-    if current_page == "🎲 symbols sheets":
+    elif current_page == "🎲 symbols sheets":
         st.subheader("🎲 Quantum Symbols Chart Sheet")
         st.write("Use this lookup table to translate quantum symbols back into classical digital logic.")
 
@@ -1141,7 +1148,7 @@ else:
                             st.session_state.checked = False
 
 
-    if current_page == "🧘‍♀️ Sandbox Mode":
+    elif current_page == "🧘‍♀️ Sandbox Mode":
         if "sb_qubits" not in st.session_state:
             st.session_state.sb_qubits = 3 # Default to 3 qubits
         if "sb_circuit_logic" not in st.session_state:
@@ -1385,5 +1392,102 @@ else:
                     except Exception as e:
                         st.error(f"⚠️ Error details: {e}")
 
+    # ==========================================
+    # 🕵️‍♀️ THE STORY ENGINE (ALICE & BOB)
+    # ==========================================
+    elif current_page == "🕵️‍♀️ Story Mode: Alice & Bob":
+        st.header("🕵️‍♀️ Alice & Bob: Quantum Espionage")
+        
+        # --- 1. THE SCRIPT (The Dictionary) ---
+        # This is where we write the entire game. No UI code goes in here!
+        story_script = {
+            "Chapter 1: The Quantum Key (BB84)": {
+                "start": {
+                    "icon": "👩‍💻",
+                    "text": "Alice sits at her terminal. The neon glow reflects in her eyes. 'I need to send the launch codes to Bob,' she mutters, 'but Eve is definitely listening on the standard channels.'\n\nWhat should Alice do?",
+                    "choices": [
+                        {"label": "Send it via standard encrypted email.", "next_scene": "fail_email"},
+                        {"label": "Boot up the Quantum Channel (BB84 Protocol).", "next_scene": "q_channel"}
+                    ]
+                },
+                "fail_email": {
+                    "icon": "🚨",
+                    "text": "Alice hits send. Five seconds later, her screen flashes RED. Eve cracked the RSA encryption. The codes are stolen.\n\n**MISSION FAILED.**",
+                    "choices": [
+                        {"label": "Rewind Time (Retry)", "next_scene": "start"}
+                    ]
+                },
+                "q_channel": {
+                    "icon": "⚛️",
+                    "text": "Alice initializes the quantum link. 'Smart,' she thinks. 'If Eve tries to look at the qubits, she'll collapse the wave function and we will know she's there.'\n\n(Quantum Mechanics sandbox integration coming in Phase 2!)",
+                    "choices": [
+                        {"label": "End of Phase 1 Demo. Restart?", "next_scene": "start"}
+                    ]
+                }
+            },
+            "Chapter 2: The Spooky Link (Teleportation)": {
+                "start": {
+                    "icon": "🚧",
+                    "text": "This chapter is currently under construction! You will need to build an entanglement bridge with Bob to proceed.",
+                    "choices": [
+                        {"label": "Go Back", "next_scene": "start"}
+                    ]
+                }
+            }
+        }
+
+        # --- 2. FAST CALLBACK TO CHANGE SCENES ---
+        def change_scene(next_scene_name):
+            st.session_state.current_scene = next_scene_name
+
+        # --- 3. THE CHAPTER SELECTOR ---
+        all_chapters = list(story_script.keys())
+        
+        # Create a nice layout for the top menu
+        col_nav, _ = st.columns([2, 1])
+        with col_nav:
+            selected_chap = st.selectbox("📂 Select Chapter File:", all_chapters, index=all_chapters.index(st.session_state.active_chapter))
+        
+        # If they use the dropdown to change chapters, reset the scene to the beginning!
+        if selected_chap != st.session_state.active_chapter:
+            st.session_state.active_chapter = selected_chap
+            st.session_state.current_scene = "start"
+            st.rerun()
+
+        st.divider()
+
+        # --- 4. THE ENGINE (Draws the Script) ---
+        if selected_chap not in st.session_state.unlocked_chapters:
+            # The Lock-Out Screen
+            st.error("🔒 **ACCESS DENIED**")
+            st.warning("This file is heavily encrypted. You must successfully clear the previous chapters to unlock it.")
+        else:
+            # The Gameplay Screen
+            scene_data = story_script[selected_chap][st.session_state.current_scene]
+            
+            # We use a container to make it look like a sleek terminal box
+            with st.container(border=True):
+                # Draw the Icon and Text
+                st.write(f"# {scene_data['icon']}")
+                st.write(scene_data['text'])
+                
+                st.write("") # Add a little blank space
+                
+                # Draw the Choices dynamically
+                st.write("**> AWAITING INPUT:**")
+                
+                # We put the buttons in columns so they sit side-by-side if there are multiple choices
+                cols = st.columns(len(scene_data['choices']))
+                
+                for idx, choice in enumerate(scene_data['choices']):
+                    with cols[idx]:
+                        # We pass the 'next_scene' into our callback function!
+                        st.button(
+                            choice['label'], 
+                            key=f"{selected_chap}_{st.session_state.current_scene}_{idx}", 
+                            on_click=change_scene, 
+                            args=(choice['next_scene'],),
+                            use_container_width=True
+                        )
 
         
