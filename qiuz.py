@@ -1062,8 +1062,8 @@ else:
 
         # Draw it! (Assuming you are using matplotlib for visuals)
         with st.container(border=True):
-            fig = qc.draw(output='mpl')
-            st.pyplot(fig)
+            fig = qc.draw(output='mpl', scale=0.8)
+            st.pyplot(fig, use_container_width=False)
 
         # ==========================================
         # 5. THE GATE TOOLBOX (Buttons)
