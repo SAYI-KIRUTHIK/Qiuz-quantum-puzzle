@@ -3,10 +3,10 @@
 primaryColor = "#FF6B8B"
 
 # The main background (Deep, dark desaturated plum/magenta)
-backgroundColor = "#1A1016"
+backgroundColor = "#473740"
 
 # The sidebar and input boxes (Slightly lighter dark pink-grey)
-secondaryBackgroundColor = "#2A1821"
+secondaryBackgroundColor = "#291921"
 
 # The text color (A very soft, readable blush-white)
 textColor = "#FFE8EE"
