@@ -3,6 +3,7 @@
 Welcome to **Qiuz**, an interactive web game built to make learning Quantum Computing fun, visual, and story-driven! 
 
 Instead of just looking at dry textbook math, Qiuz lets you physically wire up quantum circuits to solve puzzles, earn currency, and defeat hackers.
+## Play Now : [https://qiuz-quantum-puzzle-sa-k-hi-aminigame.streamlit.app/]
 
 ### 🎮 Features
 * **🕵️‍♀️ Story Mode:** Play as Alice and Bob in an interactive spy-thriller. Learn real-world quantum cryptography (like BB84 and Teleportation) to stop Eve from stealing your data!
